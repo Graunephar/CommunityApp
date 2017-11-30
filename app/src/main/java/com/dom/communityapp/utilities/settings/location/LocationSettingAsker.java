@@ -1,14 +1,9 @@
-package com.dom.communityapp.utilities.settings;
+package com.dom.communityapp.utilities.settings.location;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.IntentSender;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
-import com.dom.communityapp.MapsActivity;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -18,6 +13,8 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_HIGH;
+import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_LOW;
 import static com.google.android.gms.location.LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
@@ -30,14 +27,6 @@ public class LocationSettingAsker implements SettingAsker{
     private static final int REQUEST_CHECK_SETTINGS = 42;
     private final Activity context;
 
-    private LocationRequest high = new LocationRequest()
-            .setPriority(PRIORITY_HIGH_ACCURACY)
-            .setInterval(10);
-
-    private LocationRequest low = new LocationRequest()
-            .setPriority(PRIORITY_BALANCED_POWER_ACCURACY)
-            .setInterval(35);
-
     public LocationSettingAsker(Activity context) {
         this.context = context;
     }
@@ -45,10 +34,9 @@ public class LocationSettingAsker implements SettingAsker{
     @Override
     public void ask() {
 
-
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(high)
-                .addLocationRequest(low);
+                .addLocationRequest(LOCATION_LOW)
+                .addLocationRequest(LOCATION_HIGH);
 
 
         Task<LocationSettingsResponse> result =
