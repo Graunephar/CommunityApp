@@ -13,6 +13,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.dom.communityapp.utilities.settings.LocationSettingAsker;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -28,11 +30,15 @@ import com.google.android.gms.tasks.Task;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final LatLng BRISBANE = new LatLng(10,10);
+    private static final LatLng BRISBANE = new LatLng(10, 10);
+    private static final float DEFAULT_ZOOM = 15;
+    private static final String TAG = "Location";
     private GoogleMap mMap;
     private boolean mLocationPermissionGranted;
     private Location mLastKnownLocation;
     private LocationSettingAsker mLocationAsker;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private LatLng mDefaultLocation = new LatLng(100, 100);
 
     public MapsActivity() {
         this.mLocationAsker = new LocationSettingAsker(this);
@@ -50,9 +56,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .rotateGesturesEnabled(false)
                 .tiltGesturesEnabled(false);*/
 
+        // Construct a GeoDataClient.
+        //mGeoDataClient = Places.getGeoDataClient(this, null);
+
+        // Construct a PlaceDetectionClient.
+        //mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
 
         // Construct a FusedLocationProviderClient.
-       // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+
 
         mLocationAsker.ask();
         getLocationPermission();
@@ -73,6 +86,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -85,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-        //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
+    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
 
     private void getLocationPermission() {
     /*
@@ -99,6 +114,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
+
+
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -119,6 +136,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
+
         updateLocationUI();
     }
 
@@ -130,14 +148,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         updateLocationUI();
 
+
         mMap.setOnPoiClickListener(this);
         mMap.setOnMarkerClickListener(this);
 
         Marker mBrisbane = mMap.addMarker(new MarkerOptions()
                 .position(BRISBANE)
                 .title("Brisbane")
-        .snippet("The Bane of Bris"));
+                .snippet("The Bane of Bris"));
         mBrisbane.setTag(0);
+
+        getDeviceLocation();
+
 
     }
 
@@ -173,5 +195,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         return false;
+    }
+
+    private void getDeviceLocation() {
+    /*
+     * Get the best and most recent location of the device, which may be null in rare
+     * cases when a location is not available.
+     */
+        try {
+            if (mLocationPermissionGranted) {
+                Task locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this, new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            mLastKnownLocation = (Location) task.getResult();
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(mLastKnownLocation.getLatitude(),
+                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                        } else {
+                            Log.d(TAG, "Current location is null. Using defaults.");
+                            Log.e(TAG, "Exception: %s", task.getException());
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                        }
+                    }
+                });
+            }
+        } catch(SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
     }
 }
