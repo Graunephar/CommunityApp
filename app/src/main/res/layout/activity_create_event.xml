@@ -12,8 +12,7 @@
         android:layout_width="wrap_content"
         app:menu="@menu/navigation"
         android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header_navigation"
-        >
+        app:headerLayout="@layout/nav_header_navigation">
     </android.support.design.widget.NavigationView>
 
 
@@ -32,7 +31,7 @@
             android:paddingBottom="0dp">
 
             <ImageView
-                android:id="@+id/imageView_Event"
+                android:id="@+id/imageview_event"
                 android:layout_width="match_parent"
                 android:layout_height="227dp"
                 android:layout_marginEnd="8dp"
@@ -45,7 +44,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:id="@+id/Edittext_Short_despription"
+                android:id="@+id/edittext_short_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
@@ -54,7 +53,7 @@
                 />
 
             <EditText
-                android:id="@+id/Edittext_Long_despription"
+                android:id="@+id/edittext_long_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"

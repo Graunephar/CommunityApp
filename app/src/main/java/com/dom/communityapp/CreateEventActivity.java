@@ -45,9 +45,9 @@ public class CreateEventActivity extends AppCompatActivity {
         mToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        viewer = (ImageView) findViewById(R.id.imageView_Event);
-        short_description = findViewById(R.id.Edittext_Short_despription);
-        long_description = findViewById(R.id.Edittext_Long_despription);
+        viewer = (ImageView) findViewById(R.id.imageview_event);
+        short_description = findViewById(R.id.edittext_short_description);
+        long_description = findViewById(R.id.edittext_long_description);
         tag_spin = findViewById(R.id.spinner_tags);
         cat_spin = findViewById(R.id.spinner_categories);
         time_spin = findViewById(R.id.spinner_time_required);
