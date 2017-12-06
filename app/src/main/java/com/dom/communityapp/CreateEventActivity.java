@@ -1,6 +1,8 @@
 package com.dom.communityapp;
 
 import android.graphics.Bitmap;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -28,10 +30,19 @@ public class CreateEventActivity extends AppCompatActivity {
     //Request codes
     private static final int CAMERA_REQUEST_CODE = 11;
 
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.createeventactivity);
+        mToggle = new ActionBarDrawerToggle(this,mDrawerLayout, R.string.open,R.string.close);
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         viewer = (ImageView) findViewById(R.id.imageView_Event);
         short_description = findViewById(R.id.Edittext_Short_despription);
