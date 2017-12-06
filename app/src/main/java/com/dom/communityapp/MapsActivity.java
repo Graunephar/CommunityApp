@@ -2,7 +2,12 @@ package com.dom.communityapp;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -26,8 +31,18 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLOutput;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_HIGH;
@@ -49,6 +64,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private LinkedBlockingQueue<PermissionRequestCallback> mLocationRequestQueue;
     private boolean mFirstPosition = true;
+    private StorageReference mStorageRef;
+
+
 
     public MapsActivity() {
         this.mLocationRequestQueue = new LinkedBlockingQueue<>();
@@ -65,6 +83,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
         setContentView(R.layout.activity_maps);
+
+        // Firebase reference to Cloud Storage
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference mStorageRef = storage.getReferenceFromUrl("gs://communityapp-649ff.appspot.com").child("ic_launcher.png");
+
+//        mStorageRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://communityapp-649ff.appspot.com").child("gradle_trouble.png");
+
+
+
 
         /*GoogleMapOptions options = new GoogleMapOptions();
         options.mapType(GoogleMap.MAP_TYPE_HYBRID)
@@ -221,6 +248,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .snippet("The Bane of Bris"));
         mBrisbane.setTag(0);
 
+        uploadManager();
+
     }
 
     private void updateMap() {
@@ -316,5 +345,66 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    private void uploadFiletoFirebase(){
+       // Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gradle_trouble);
+
+        Uri file = Uri.fromFile(new File("WhatsApp/Media/WhatsApp Images/Sent/IMG-20171106-WA0000.jpg"));
+        StorageReference testRef = mStorageRef.child("images/test.jpg");
+
+        testRef.putFile(file)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // get URL of uploaded file
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.out.println("Error uploading to Firebase cloud storage " + e);
+                    }
+                });
+    }
+
+
+    private void uploadManager(){
+    AssetManager assetManager = MapsActivity.this.getAssets();
+    InputStream inputStream;
+    Bitmap bitmap;
+    try {
+        //get bitmap from asset folder
+        inputStream = assetManager.open("gradle_trouble.png");
+        bitmap = BitmapFactory.decodeStream(inputStream);
+
+        //decode output to bytes
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+        byte[] data = outputStream.toByteArray();
+
+        //upload to firebase
+        UploadTask uploadTask = mStorageRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                System.out.println("Error uploading to Firebase cloud storage " + e);
+                Toast.makeText(MapsActivity.this, "Upload Failed", Toast.LENGTH_SHORT).show();
+
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(MapsActivity.this, "Upload Succeeded", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
     }
 }
