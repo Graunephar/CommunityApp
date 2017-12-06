@@ -1,4 +1,27 @@
 <resources>
     <string name="app_name">CommunityApp</string>
     <string name="title_activity_maps">Map</string>
+    <string name="create_event_txted_short">Short description of your event</string>
+    <string name="create_event_txted_long">An in depth description of your event</string>
+    <string name="create_event_Btn">CREATE EVENT</string>
+
+    <string-array name="tags">
+        <item>Cleaning</item>
+        <item>Snow</item>
+        <item>Work</item>
+    </string-array>
+    <string-array name="categories">
+        <item>Local</item>
+        <item>Cleaning</item>
+        <item>Work</item>
+        <item>Trash</item>
+        <item>Road</item>
+    </string-array>
+    <string-array name="Time_duration">
+        <item>Efternoon</item>
+        <item>Weekend</item>
+        <item>An hour</item>
+        <item>Short project</item>
+        <item>Long spanning project</item>
+    </string-array>
 </resources>
