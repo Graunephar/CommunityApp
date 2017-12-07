@@ -1,12 +1,9 @@
 package com.dom.communityapp;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -14,20 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 
@@ -35,39 +19,43 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
     //REF:  https://github.com/probelalkhan/firebase-file-upload-example/blob/master/app/src/main/java/net/simplifiedcoding/firebasestorage/MainActivity.java
 
-    //a constant to track the file chooser intent
     private static final int PICK_IMAGE_REQUEST = 234;
-
-    //Buttons
     private Button buttonChoose;
     private Button buttonUpload;
 
-    //ImageView
     private ImageView img_view;
-
     private FirebaseDatabaseStorage firebaseDatabaseStorage = new FirebaseDatabaseStorage(this);
-
+    //used in Firebasedatabasestorage
     public Uri filePath;
+
+    EditText edit_description;
+    Button btn_get_txt;
+    TextView txt_get_txt;
+    Button btn_submit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
 
-        //getting views from layout
+        //STORAGE
         buttonChoose = (Button) findViewById(R.id.btn_img);
         buttonUpload = (Button) findViewById(R.id.btn_upload);
         img_view = (ImageView) findViewById(R.id.img_view);
 
-
-        //attaching listener
         buttonChoose.setOnClickListener(this);
         buttonUpload.setOnClickListener(this);
 
+
+
+        //DATABASE
+        edit_description = (EditText) findViewById(R.id.edit_description);
+        txt_get_txt = (TextView) findViewById(R.id.txt_get_txt);
+        btn_submit = (Button) findViewById(R.id.btn_submit);
+        btn_get_txt = (Button) findViewById(R.id.btn_get_txt);
+
     }
 
-
-    //method to show file chooser
     private void showFileChooser() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -75,7 +63,6 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
     }
 
-    //handling the image chooser activity result
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -94,11 +81,9 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
-        //if the clicked button is choose
         if (view == buttonChoose) {
             showFileChooser();
         }
-        //if the clicked button is upload
         else if (view == buttonUpload) {
             firebaseDatabaseStorage.uploadFile();
         }
@@ -121,11 +106,13 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
     ImageView img_view;
 
 
-    Button btn_submit;
-    DatabaseReference rootRef, demoRef;
+
     EditText edit_description;
     private Button btn_get_txt;
     private TextView txt_get_txt;
+    Button btn_submit;
+    DatabaseReference rootRef, demoRef;
+
 
     public Uri selectedImage;
 
