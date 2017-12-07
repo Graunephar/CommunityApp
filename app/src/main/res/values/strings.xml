@@ -34,4 +34,8 @@
     <string name="action_map">Map</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
+    <string name="btn_get_txt">Get txt from firebase db</string>
+    <string name="btn_submit">submit txt to firebase db</string>
+    <string name="btn_upload">upload image to firebase storage</string>
+    <string name="btn_img">select image from phone</string>
 </resources>
