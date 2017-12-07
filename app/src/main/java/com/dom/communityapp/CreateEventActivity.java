@@ -1,11 +1,7 @@
 package com.dom.communityapp;
 
 import android.graphics.Bitmap;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -13,12 +9,11 @@ import android.widget.ImageView;
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.MapView;
 
 
-public class CreateEventActivity extends AppCompatActivity {
+public class CreateEventActivity extends AbstractNavigation {
 
     //Local variable
 
@@ -31,19 +26,14 @@ public class CreateEventActivity extends AppCompatActivity {
     //Request codes
     private static final int CAMERA_REQUEST_CODE = 11;
 
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
+    //private DrawerLayout mDrawerLayout;
+    //private ActionBarDrawerToggle mToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+        super.onCreate(savedInstanceState);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.createeventactivity);
-        mToggle = new ActionBarDrawerToggle(this,mDrawerLayout, R.string.open,R.string.close);
-        mDrawerLayout.addDrawerListener(mToggle);
-        mToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         viewer = (ImageView) findViewById(R.id.imageview_event);
         short_description = findViewById(R.id.edittext_short_description);
@@ -61,8 +51,6 @@ public class CreateEventActivity extends AppCompatActivity {
                 startActivityForResult(intent, CAMERA_REQUEST_CODE);
                 intent.putExtra("return-data", true);
             }
-
-
         });
 
         //Adapter for tag_spin
@@ -82,6 +70,8 @@ public class CreateEventActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.Time_duration));
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
+
+
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -94,9 +84,15 @@ public class CreateEventActivity extends AppCompatActivity {
         }
     }
 
-    public void createEvent(){
 
+/*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.navigation, menu);
+        return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -106,5 +102,18 @@ public class CreateEventActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        Toast.makeText(this, "sadfas", Toast.LENGTH_SHORT).show();
+        //if (item.getItemId() == R...ID) startActivity(new Itent);
+        return false;
+    }
+*/
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 }

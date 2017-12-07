@@ -11,6 +11,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
+import android.content.Intent;
+
 
 import com.dom.communityapp.utilities.settings.location.LocationSettingAsker;
 import com.dom.communityapp.utilities.settings.location.PermissionRequestCallback;
