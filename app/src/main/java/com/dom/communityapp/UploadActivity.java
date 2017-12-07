@@ -2,7 +2,9 @@ package com.dom.communityapp;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -27,12 +29,91 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
-public class UploadActivity extends AppCompatActivity {
+import java.io.IOException;
 
+public class UploadActivity extends AppCompatActivity implements View.OnClickListener {
+
+    //REF:  https://github.com/probelalkhan/firebase-file-upload-example/blob/master/app/src/main/java/net/simplifiedcoding/firebasestorage/MainActivity.java
+
+    //a constant to track the file chooser intent
+    private static final int PICK_IMAGE_REQUEST = 234;
+
+    //Buttons
+    private Button buttonChoose;
+    private Button buttonUpload;
+
+    //ImageView
+    private ImageView img_view;
+
+    private FirebaseDatabaseStorage firebaseDatabaseStorage = new FirebaseDatabaseStorage(this);
+
+    public Uri filePath;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_upload);
+
+        //getting views from layout
+        buttonChoose = (Button) findViewById(R.id.btn_img);
+        buttonUpload = (Button) findViewById(R.id.btn_upload);
+        img_view = (ImageView) findViewById(R.id.img_view);
+
+
+        //attaching listener
+        buttonChoose.setOnClickListener(this);
+        buttonUpload.setOnClickListener(this);
+
+    }
+
+
+    //method to show file chooser
+    private void showFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+    }
+
+    //handling the image chooser activity result
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            filePath = data.getData();
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
+                img_view.setImageBitmap(bitmap);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    @Override
+    public void onClick(View view) {
+        //if the clicked button is choose
+        if (view == buttonChoose) {
+            showFileChooser();
+        }
+        //if the clicked button is upload
+        else if (view == buttonUpload) {
+            firebaseDatabaseStorage.uploadFile();
+        }
+    }
+
+
+
+
+
+
+
+    /*
     //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
 
     private static final int SELECT_PHOTO = 100;
-    Uri selectedImage;
     FirebaseStorage storage;
     StorageReference storageRef, imageRef;
     ProgressDialog progressDialog;
@@ -45,6 +126,8 @@ public class UploadActivity extends AppCompatActivity {
     EditText edit_description;
     private Button btn_get_txt;
     private TextView txt_get_txt;
+
+    public Uri selectedImage;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,8 +156,6 @@ public class UploadActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String value = edit_description.getText().toString();
-
-
                 // Chose one or the other:
 
                 //creates a unique id in database
@@ -94,13 +175,10 @@ public class UploadActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String value = dataSnapshot.getValue(String.class);
                         txt_get_txt.setText(value);
-
-
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
                     }
                 });
             }
@@ -111,7 +189,7 @@ public class UploadActivity extends AppCompatActivity {
     //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
     public void selectImage(View view) {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
+        photoPickerIntent.setType("image");
         startActivityForResult(photoPickerIntent, SELECT_PHOTO);
     }
 
@@ -126,6 +204,7 @@ public class UploadActivity extends AppCompatActivity {
                 }
         }
     }
+
 
     //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
     public void uploadImage(View view) {
@@ -175,15 +254,7 @@ public class UploadActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
-
-
-
-
-
-
+*/
 
 
 
