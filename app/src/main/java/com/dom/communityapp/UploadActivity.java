@@ -11,12 +11,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -33,20 +37,28 @@ public class UploadActivity extends AppCompatActivity {
     StorageReference storageRef, imageRef;
     ProgressDialog progressDialog;
     UploadTask uploadTask;
-    ImageView imageView;
+    ImageView img_view;
 
-    EditText editText;
-    Button submit;
+
+    Button btn_submit;
     DatabaseReference rootRef, demoRef;
+    EditText edit_description;
+    private Button btn_get_txt;
+    private TextView txt_get_txt;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
-        imageView = (ImageView) findViewById(R.id.img_view);
-        editText = (EditText) findViewById(R.id.edit_description);
-        submit = (Button) findViewById(R.id.btn_submit);
+        img_view = (ImageView) findViewById(R.id.img_view);
 
+        edit_description = (EditText) findViewById(R.id.edit_description);
+        txt_get_txt = (TextView) findViewById(R.id.txt_get_txt);
+        btn_submit = (Button) findViewById(R.id.btn_submit);
+        btn_get_txt = (Button) findViewById(R.id.btn_get_txt);
+
+
+        //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
         //accessing the firebase storage
         storage = FirebaseStorage.getInstance();
         //creates a storage reference
@@ -57,17 +69,46 @@ public class UploadActivity extends AppCompatActivity {
 
         demoRef = rootRef.child("demo");
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        btn_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String value = editText.getText().toString();
+                String value = edit_description.getText().toString();
+
+
+                // Chose one or the other:
 
                 //creates a unique id in database
                 demoRef.push().setValue(value);
+
+                //creates one value, which is easy to fetch
+                demoRef.child("value").setValue(value);
             }
         });
+
+
+        btn_get_txt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String value = dataSnapshot.getValue(String.class);
+                        txt_get_txt.setText(value);
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        });
+
     }
 
+    //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
     public void selectImage(View view) {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
@@ -86,6 +127,7 @@ public class UploadActivity extends AppCompatActivity {
         }
     }
 
+    //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
     public void uploadImage(View view) {
         //create reference to images folder and adding a name to the file that will be uploaded
         imageRef = storageRef.child("images/" + selectedImage.getLastPathSegment());
@@ -129,7 +171,7 @@ public class UploadActivity extends AppCompatActivity {
                 Toast.makeText(UploadActivity.this, "Upload successful to firebase storage", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
                 //showing the uploaded image in ImageView using the download url
-                Picasso.with(UploadActivity.this).load(downloadUrl).into(imageView);
+                Picasso.with(UploadActivity.this).load(downloadUrl).into(img_view);
             }
         });
     }
