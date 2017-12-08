@@ -2,6 +2,7 @@ package com.dom.communityapp;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -30,8 +31,18 @@ public class CreateEventActivity extends AbstractNavigation {
     //private ActionBarDrawerToggle mToggle;
 
     @Override
+    protected DrawerLayout getdrawerLayout() {
+        return (DrawerLayout) findViewById(R.id.createeventactivity);
+    }
+
+    @Override
+    protected int getLayoutid() {
+        return R.layout.activity_create_event;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_create_event);
+        //setContentView(R.layout.activity_create_event);
         super.onCreate(savedInstanceState);
 
 
@@ -111,9 +122,9 @@ public class CreateEventActivity extends AbstractNavigation {
         return false;
     }
 */
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
+//
+//    @Override
+//    public void onPointerCaptureChanged(boolean hasCapture) {
+//
+//    }
 }

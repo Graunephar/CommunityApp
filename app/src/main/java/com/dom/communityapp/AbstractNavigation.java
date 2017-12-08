@@ -21,22 +21,27 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
     private ActionBarDrawerToggle mToggle;
 
+
+    protected abstract DrawerLayout getdrawerLayout();
+
+    protected abstract int getLayoutid();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(getLayoutid());
+        DrawerLayout drawer = getdrawerLayout();
 
 
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.createeventactivity);
-        //ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        //        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mToggle = new ActionBarDrawerToggle(this,drawer, R.string.open,R.string.close);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         drawer.addDrawerListener(mToggle);
         mToggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+      //  ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        //        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.draw_view);
         navigationView.setNavigationItemSelectedListener(this);
 
     }
@@ -44,7 +49,7 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.createeventactivity);
+        DrawerLayout drawer = (DrawerLayout) getdrawerLayout(); /*findViewById(R.id.createeventactivity);*/
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -94,6 +99,8 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
         } else if (id == R.id.action_settings ) {
             Toast.makeText(this, "OPEN Settings", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, DetailsActivity.class);
+            startActivity(intent);
 
         } else if (id == R.id.action_create) {
             Toast.makeText(this, "OPEN CREATE", Toast.LENGTH_SHORT).show();
@@ -104,8 +111,8 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
         // Null DO NOT DELETE YET
 
-        //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.createeventactivity);
-        //drawer.closeDrawer(GravityCompat.START);
+        DrawerLayout drawer = (DrawerLayout) getdrawerLayout();
+        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 }

@@ -1,17 +1,18 @@
 package com.dom.communityapp;
 
 import android.Manifest;
+import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.widget.Toast;
-import android.content.Intent;
 
 
 import com.dom.communityapp.utilities.settings.location.LocationSettingAsker;
@@ -22,6 +23,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -37,7 +39,7 @@ import static com.dom.communityapp.utilities.settings.location.LocationConstants
 import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_LOW;
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng BRISBANE = new LatLng(10, 10);
@@ -52,6 +54,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private LinkedBlockingQueue<PermissionRequestCallback> mLocationRequestQueue;
     private boolean mFirstPosition = true;
+    private MapFragment mMapFragment;
 
 
 
@@ -62,15 +65,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    protected DrawerLayout getdrawerLayout() {
+        return (DrawerLayout) findViewById(R.id.map_layout);
+    }
+
+    @Override
+    protected int getLayoutid() {
+        return R.layout.activity_maps;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setContentView(getLayoutid());
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
         }
-        setContentView(R.layout.activity_maps);
 
 
         /*GoogleMapOptions options = new GoogleMapOptions();
@@ -121,10 +134,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         updateLocationUI();
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mMapFragment = MapFragment.newInstance();
+        FragmentTransaction fragmentTransaction =
+                getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.map_layout, mMapFragment);
+        fragmentTransaction.commit();
+
+        mMapFragment.getMapAsync(this);
+
     }
 
 
@@ -227,6 +244,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .title("Brisbane")
                 .snippet("The Bane of Bris"));
         mBrisbane.setTag(0);
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                Toast.makeText(getApplicationContext(), "CLICK CLICK", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
