@@ -18,6 +18,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+
 
 /**
  * Created by mrl on 07/12/2017.
@@ -28,7 +30,7 @@ public class FirebaseDatabaseStorage {
     UploadActivity uploadActivity;
     private UploadTask uploadTask;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
-
+    private ArrayList<FirebaseObserver> observers = new ArrayList<>();
     //DATABASE:
 
     //ref pointing to root
@@ -41,20 +43,32 @@ public class FirebaseDatabaseStorage {
         this.uploadActivity = uploadActivity;
     }
 
-    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void saveToDatabase() {
+    public void addObserver(FirebaseObserver observer) {
+        observers.add(observer);
+    }
 
-        // Chose one or the other:
-        demoRef.push().setValue(uploadActivity.value);  //creates a unique id in database
-        demoRef.child("value").setValue(uploadActivity.value);  //creates one value, which is easy to fetch
+    public void removeObserver(FirebaseObserver observer){
+        observers.remove(observer);
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void getFromDatabase() {
+    public void saveToDatabase(String data) {
+
+        // Chose one or the other:
+        demoRef.push().setValue(data);  //creates a unique id in database
+        //demoRef.child("value").setValue(data);  //creates one value, which is easy to fetch
+
+    }
+
+    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
+    public void addChangeListener() {
         demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                uploadActivity.value = dataSnapshot.getValue(String.class);
+                for(FirebaseObserver observer : observers) {
+                    observer.onDataChanged(dataSnapshot.getValue(String.class));
+                }
+
             }
 
             @Override

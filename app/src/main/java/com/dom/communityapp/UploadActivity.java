@@ -6,8 +6,6 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,20 +15,23 @@ import java.io.IOException;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class UploadActivity extends AppCompatActivity{
+public class UploadActivity extends AppCompatActivity implements FirebaseObserver {
 
     //REF:  https://github.com/probelalkhan/firebase-file-upload-example/blob/master/app/src/main/java/net/simplifiedcoding/firebasestorage/MainActivity.java
 
     private static final int PICK_IMAGE_REQUEST = 234;
 
     public ImageView img_view;
-    private FirebaseDatabaseStorage firebaseDatabaseStorage = new FirebaseDatabaseStorage(this);
-    //used in Firebasedatabasestorage
+    private FirebaseDatabaseStorage firebaseDatabaseStorage;
     public Uri filePath;
 
     EditText edit_description;
     TextView txt_get_txt;
-    public String value;
+
+    public UploadActivity() {
+        firebaseDatabaseStorage = new FirebaseDatabaseStorage(this);
+        firebaseDatabaseStorage.addObserver(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +54,14 @@ public class UploadActivity extends AppCompatActivity{
 
     @OnClick(R.id.btn_submit)
     public void saveToDB() {
-        value = edit_description.getText().toString();
-        firebaseDatabaseStorage.saveToDatabase();
+        String value = edit_description.getText().toString();
+        firebaseDatabaseStorage.saveToDatabase(value);
     }
 
-    @OnClick(R.id.btn_get_txt)
+    @OnClick(R.id.btn_change_listener)
     public void getTextFromDB() {
-        firebaseDatabaseStorage.getFromDatabase();
-        txt_get_txt.setText(value);
+        firebaseDatabaseStorage.addChangeListener();
+
     }
 
     @OnClick(R.id.btn_img)
@@ -91,5 +92,10 @@ public class UploadActivity extends AppCompatActivity{
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void onDataChanged(String value) {
+        txt_get_txt.setText(value);
     }
 }

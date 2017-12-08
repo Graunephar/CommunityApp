@@ -33,7 +33,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".UploadActivity">
+        <activity android:name=".FirebaseCreateEventTestTempActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -48,6 +48,10 @@
             android:label="@string/title_activity_navigation"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".CreateEventActivity" />
+        <activity
+            android:name=".UploadActivity"
+            android:label="@string/title_activity_firebase_create_event_test_temp"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
