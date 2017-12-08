@@ -10,6 +10,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.dom.communityapp.storage.FirebaseDatabaseStorage;
+import com.dom.communityapp.storage.FirebaseObserver;
+import com.squareup.picasso.Picasso;
+
 import java.io.IOException;
 
 import butterknife.ButterKnife;
@@ -97,5 +101,11 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
     @Override
     public void onDataChanged(String value) {
         txt_get_txt.setText(value);
+    }
+
+    @Override
+    public void getImage(Uri downloadUrl) {
+        //showing the uploaded image in ImageView using the download url. Choose this method or local method.
+        Picasso.with(this).load(downloadUrl).into(img_view);
     }
 }

@@ -1,10 +1,13 @@
-package com.dom.communityapp;
+package com.dom.communityapp.storage;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
+import com.dom.communityapp.UploadActivity;
+import com.dom.communityapp.models.CommunityIssue;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +30,7 @@ import java.util.ArrayList;
 
 public class FirebaseDatabaseStorage {
     //STORAGE:
-    UploadActivity uploadActivity;
+    Context mUploadActivity;
     private UploadTask uploadTask;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private ArrayList<FirebaseObserver> observers = new ArrayList<>();
@@ -39,8 +42,8 @@ public class FirebaseDatabaseStorage {
     DatabaseReference demoRef = rootRef.child("demo");
 
 
-    public FirebaseDatabaseStorage(UploadActivity uploadActivity) {
-        this.uploadActivity = uploadActivity;
+    public FirebaseDatabaseStorage(Context uploadActivity) {
+        this.mUploadActivity = uploadActivity;
     }
 
     public void addObserver(FirebaseObserver observer) {
@@ -58,6 +61,10 @@ public class FirebaseDatabaseStorage {
         demoRef.push().setValue(data);  //creates a unique id in database
         //demoRef.child("value").setValue(data);  //creates one value, which is easy to fetch
 
+    }
+
+    public void saveIssueToDatabase(CommunityIssue issue) {
+        demoRef.push().setValue(issue);
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
@@ -82,7 +89,7 @@ public class FirebaseDatabaseStorage {
         //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
         if (filepath != null) {
 
-            final ProgressDialog progressDialog = new ProgressDialog(uploadActivity);
+            final ProgressDialog progressDialog = new ProgressDialog(mUploadActivity);
             progressDialog.setMax(100);
             progressDialog.setMessage("Uploading...");
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -98,19 +105,19 @@ public class FirebaseDatabaseStorage {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-                    //showing the uploaded image in ImageView using the download url. Choose this method or local method.
-                    Picasso.with(uploadActivity).load(downloadUrl).into(uploadActivity.img_view);
+                    for(FirebaseObserver observer : observers) {
+                        observer.getImage(downloadUrl);
+                    }
 
                     progressDialog.dismiss();
-                    Toast.makeText(uploadActivity, "File Uploaded ", Toast.LENGTH_LONG).show();
+                    Toast.makeText(mUploadActivity, "File Uploaded ", Toast.LENGTH_LONG).show();
                 }
             });
             uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     progressDialog.dismiss();
-                    Toast.makeText(uploadActivity, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(mUploadActivity, exception.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 

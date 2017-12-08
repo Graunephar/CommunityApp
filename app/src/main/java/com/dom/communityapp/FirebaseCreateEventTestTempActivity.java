@@ -16,8 +16,16 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.storage.FirebaseDatabaseStorage;
+import com.dom.communityapp.storage.FirebaseObserver;
 import com.google.android.gms.maps.MapView;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
 /* This activity is a temporary copy of create event activity, made for
@@ -30,46 +38,34 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
 
     Bitmap myImage;
     ImageView viewer;
-    EditText short_description, long_description;
-    Spinner tag_spin, cat_spin, time_spin;
     MapView map_show;
 
     //Request codes
     private static final int CAMERA_REQUEST_CODE = 11;
+    private FirebaseDatabaseStorage mStorage = new FirebaseDatabaseStorage(this);
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
+    @BindView(R.id.edittext_short_description2) EditText short_description;
+    @BindView(R.id.edittext_long_description2) EditText long_description;
+    @BindView(R.id.spinner_tags2) Spinner tag_spin;
+    @BindView(R.id.spinner_categories2) Spinner cat_spin;
+    @BindView(R.id.spinner_time_required2) Spinner time_spin;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_event);
+        setContentView(R.layout.activity_firebase_create_event_test_temp);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.createeventactivity);
-        mToggle = new ActionBarDrawerToggle(this,mDrawerLayout, R.string.open,R.string.close);
-        mDrawerLayout.addDrawerListener(mToggle);
-        mToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        viewer = (ImageView) findViewById(R.id.imageview_event);
-        short_description = findViewById(R.id.edittext_short_description);
-        long_description = findViewById(R.id.edittext_long_description);
-        tag_spin = findViewById(R.id.spinner_tags);
-        cat_spin = findViewById(R.id.spinner_categories);
-        time_spin = findViewById(R.id.spinner_time_required);
+        ButterKnife.bind(this);
+
+        viewer = (ImageView) findViewById(R.id.imageview_event2);
+
         map_show = findViewById(R.id.mapView_create_event);
-
-        viewer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                startActivityForResult(intent, CAMERA_REQUEST_CODE);
-                intent.putExtra("return-data", true);
-            }
-
-
-        });
 
         //Adapter for tag_spin
         ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<String>(this,
@@ -88,6 +84,7 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.Time_duration));
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
+
     }
 
     @Override
@@ -101,7 +98,26 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
         }
     }
 
+    @OnClick(R.id.imageview_event2)
+    public void takePhoto(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        startActivityForResult(intent, CAMERA_REQUEST_CODE);
+        intent.putExtra("return-data", true);
+    }
+
+    @OnClick(R.id.create_event_button_OK2)
     public void createEvent(){
+
+        String sshort = short_description.getText().toString();
+        String llong = long_description.getText().toString();
+        String cat_text = cat_spin.getSelectedItem().toString();
+        String tag_text = tag_spin.getSelectedItem().toString();
+        String time_text = time_spin.getSelectedItem().toString();
+
+        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text);
+
+        mStorage.saveIssueToDatabase(issue);
 
     }
 

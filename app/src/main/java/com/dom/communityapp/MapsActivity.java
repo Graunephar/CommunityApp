@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.dom.communityapp.utilities.settings.location.LocationSettingAsker;
+import com.dom.communityapp.utilities.settings.location.PermissionRequestCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;

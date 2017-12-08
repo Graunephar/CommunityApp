@@ -6,15 +6,6 @@
     android:layout_height="match_parent"
     tools:context="com.dom.communityapp.FirebaseCreateEventTestTempActivity">
 
-    <android.support.design.widget.NavigationView
-        android:layout_height="match_parent"
-        android:layout_width="wrap_content"
-        app:menu="@menu/navigation"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header_navigation">
-    </android.support.design.widget.NavigationView>
-
-
     <ScrollView
         android:layout_width="357dp"
         android:layout_height="454dp"
@@ -98,7 +89,7 @@
                 android:visibility="visible" />
 
             <Button
-                android:id="@+id/button_OK2"
+                android:id="@+id/create_event_button_OK2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
