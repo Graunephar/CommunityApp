@@ -1,6 +1,5 @@
 package com.dom.communityapp;
 
-
 import android.app.ProgressDialog;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -42,17 +41,15 @@ public class FirebaseDatabaseStorage {
         this.uploadActivity = uploadActivity;
     }
 
-
+    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
     public void saveToDatabase() {
+
         // Chose one or the other:
-
-        //creates a unique id in database
-        demoRef.push().setValue(uploadActivity.value);
-
-        //creates one value, which is easy to fetch
-        demoRef.child("value").setValue(uploadActivity.value);
+        demoRef.push().setValue(uploadActivity.value);  //creates a unique id in database
+        demoRef.child("value").setValue(uploadActivity.value);  //creates one value, which is easy to fetch
     }
 
+    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
     public void getFromDatabase() {
         demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -65,7 +62,6 @@ public class FirebaseDatabaseStorage {
             }
         });
     }
-
 
     public void uploadFile() {
         //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
