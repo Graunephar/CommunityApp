@@ -13,6 +13,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.IOException;
 
 public class UploadActivity extends AppCompatActivity implements View.OnClickListener {
@@ -32,6 +36,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
     Button btn_get_txt;
     TextView txt_get_txt;
     Button btn_submit;
+    public String value;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +56,23 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         txt_get_txt = (TextView) findViewById(R.id.txt_get_txt);
         btn_submit = (Button) findViewById(R.id.btn_submit);
         btn_get_txt = (Button) findViewById(R.id.btn_get_txt);
+
+
+        btn_submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                value = edit_description.getText().toString();
+                firebaseDatabaseStorage.saveToDatabase();
+            }
+        });
+
+        btn_get_txt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                firebaseDatabaseStorage.getFromDatabase();
+                txt_get_txt.setText(value);
+            }
+        });
     }
 
     private void showFileChooser() {

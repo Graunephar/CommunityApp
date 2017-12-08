@@ -8,6 +8,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -20,14 +25,46 @@ import com.squareup.picasso.Picasso;
  */
 
 public class FirebaseDatabaseStorage {
+    //STORAGE:
     UploadActivity uploadActivity;
     private UploadTask uploadTask;
+    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+
+    //DATABASE:
+
+    //ref pointing to root
+    private DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+
+    DatabaseReference demoRef = rootRef.child("demo");
+
 
     public FirebaseDatabaseStorage(UploadActivity uploadActivity) {
         this.uploadActivity = uploadActivity;
     }
 
-    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+
+    public void saveToDatabase() {
+        // Chose one or the other:
+
+        //creates a unique id in database
+        demoRef.push().setValue(uploadActivity.value);
+
+        //creates one value, which is easy to fetch
+        demoRef.child("value").setValue(uploadActivity.value);
+    }
+
+    public void getFromDatabase() {
+        demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                uploadActivity.value = dataSnapshot.getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
 
 
     public void uploadFile() {
@@ -82,82 +119,3 @@ public class FirebaseDatabaseStorage {
     }
 }
 
-
-    /*
-    //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
-
-    private static final int SELECT_PHOTO = 100;
-    FirebaseStorage storage;
-    StorageReference storageRef, imageRef;
-    ProgressDialog progressDialog;
-    UploadTask uploadTask;
-    ImageView img_view;
-
-
-
-    EditText edit_description;
-    private Button btn_get_txt;
-    private TextView txt_get_txt;
-    Button btn_submit;
-    DatabaseReference rootRef, demoRef;
-
-
-    public Uri selectedImage;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_upload);
-        img_view = (ImageView) findViewById(R.id.img_view);
-
-        edit_description = (EditText) findViewById(R.id.edit_description);
-        txt_get_txt = (TextView) findViewById(R.id.txt_get_txt);
-        btn_submit = (Button) findViewById(R.id.btn_submit);
-        btn_get_txt = (Button) findViewById(R.id.btn_get_txt);
-
-
-        //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-        //accessing the firebase storage
-        storage = FirebaseStorage.getInstance();
-        //creates a storage reference
-        storageRef = storage.getReference();
-
-        //ref pointing to root
-        rootRef = FirebaseDatabase.getInstance().getReference();
-
-        demoRef = rootRef.child("demo");
-
-        btn_submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String value = edit_description.getText().toString();
-                // Chose one or the other:
-
-                //creates a unique id in database
-                demoRef.push().setValue(value);
-
-                //creates one value, which is easy to fetch
-                demoRef.child("value").setValue(value);
-            }
-        });
-
-
-        btn_get_txt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String value = dataSnapshot.getValue(String.class);
-                        txt_get_txt.setText(value);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
-            }
-        });
-
-    }
-*/
