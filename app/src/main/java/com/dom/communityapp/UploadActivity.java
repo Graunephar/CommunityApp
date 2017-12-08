@@ -14,13 +14,14 @@ import android.widget.TextView;
 
 import java.io.IOException;
 
-public class UploadActivity extends AppCompatActivity implements View.OnClickListener {
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+public class UploadActivity extends AppCompatActivity{
 
     //REF:  https://github.com/probelalkhan/firebase-file-upload-example/blob/master/app/src/main/java/net/simplifiedcoding/firebasestorage/MainActivity.java
 
     private static final int PICK_IMAGE_REQUEST = 234;
-    private Button buttonChoose;
-    private Button buttonUpload;
 
     public ImageView img_view;
     private FirebaseDatabaseStorage firebaseDatabaseStorage = new FirebaseDatabaseStorage(this);
@@ -28,9 +29,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
     public Uri filePath;
 
     EditText edit_description;
-    Button btn_get_txt;
     TextView txt_get_txt;
-    Button btn_submit;
     public String value;
 
     @Override
@@ -39,42 +38,42 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_upload);
 
         //STORAGE
-        buttonChoose = (Button) findViewById(R.id.btn_img);
-        buttonUpload = (Button) findViewById(R.id.btn_upload);
         img_view = (ImageView) findViewById(R.id.img_view);
 
-        buttonChoose.setOnClickListener(this);
-        buttonUpload.setOnClickListener(this);
 
         //DATABASE
         edit_description = (EditText) findViewById(R.id.edit_description);
         txt_get_txt = (TextView) findViewById(R.id.txt_get_txt);
-        btn_submit = (Button) findViewById(R.id.btn_submit);
-        btn_get_txt = (Button) findViewById(R.id.btn_get_txt);
 
 
-        btn_submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                value = edit_description.getText().toString();
-                firebaseDatabaseStorage.saveToDatabase();
-            }
-        });
 
-        btn_get_txt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                firebaseDatabaseStorage.getFromDatabase();
-                txt_get_txt.setText(value);
-            }
-        });
+        ButterKnife.bind(this);
     }
 
-    private void showFileChooser() {
+
+    @OnClick(R.id.btn_submit)
+    public void saveToDB() {
+        value = edit_description.getText().toString();
+        firebaseDatabaseStorage.saveToDatabase();
+    }
+
+    @OnClick(R.id.btn_get_txt)
+    public void getTextFromDB() {
+        firebaseDatabaseStorage.getFromDatabase();
+        txt_get_txt.setText(value);
+    }
+
+    @OnClick(R.id.btn_img)
+    public void showFileChooser() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+    }
+
+    @OnClick(R.id.btn_upload)
+    public void uploadFileToFirebase() {
+        firebaseDatabaseStorage.uploadFile(filePath);
     }
 
     @Override
@@ -91,15 +90,6 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        if (view == buttonChoose) {
-            showFileChooser();
-        } else if (view == buttonUpload) {
-            firebaseDatabaseStorage.uploadFile();
         }
     }
 }

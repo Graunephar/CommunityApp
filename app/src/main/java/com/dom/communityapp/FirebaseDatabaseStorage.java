@@ -63,10 +63,10 @@ public class FirebaseDatabaseStorage {
         });
     }
 
-    public void uploadFile() {
+    public void uploadFile(Uri filepath) {
         //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
         //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
-        if (uploadActivity.filePath != null) {
+        if (filepath != null) {
 
             final ProgressDialog progressDialog = new ProgressDialog(uploadActivity);
             progressDialog.setMax(100);
@@ -75,9 +75,9 @@ public class FirebaseDatabaseStorage {
             progressDialog.show();
             progressDialog.setCancelable(false);
 
-            StorageReference imageRef = storageReference.child("images/" + uploadActivity.filePath.getLastPathSegment());
+            StorageReference imageRef = storageReference.child("images/" + filepath.getLastPathSegment());
 
-            uploadTask = imageRef.putFile(uploadActivity.filePath);
+            uploadTask = imageRef.putFile(filepath);
 
             uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
