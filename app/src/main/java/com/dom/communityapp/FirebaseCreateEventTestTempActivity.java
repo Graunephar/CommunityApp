@@ -44,7 +44,6 @@ testing integration with firebase without getting merge conflicts in git */
 public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 45635;
 
-//Local variable
 
     Bitmap mTakenImage;
     ImageView viewer;
