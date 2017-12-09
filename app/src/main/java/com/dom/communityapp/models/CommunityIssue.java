@@ -15,6 +15,8 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable{
 
+    private Image image;
+
     @Expose
     @SerializedName("coordinate")
     public LatLng coordinate;
@@ -25,11 +27,11 @@ public class CommunityIssue implements Serializable{
 
     @Expose
     @SerializedName("long_description")
-    public String longDescription;
+    public String long_description;
 
     @Expose
     @SerializedName("short_description")
-    public String shortDescription;
+    public String short_description;
 
     @Expose
     @SerializedName("comments")
@@ -41,19 +43,26 @@ public class CommunityIssue implements Serializable{
 
     @Expose
     @SerializedName("time_duration")
-    public String timeDuration;
+    public String timed_duration;
 
     @Expose
     @SerializedName("category")
     public String category;
 
-    public Bitmap image;
-
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text) {
+    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, Image image) {
         this.category = cat_text;
         this.tag = tag_text;
-        this.timeDuration = time_text;
-        this.shortDescription = sshort;
-        this.longDescription = llong;
+        this.timed_duration = time_text;
+        this.short_description= sshort;
+        this.long_description = llong;
+        this.image = image;
+    }
+
+    public Image getImage() {
+        return image;
+    }
+
+    public void setImage(Image image) {
+        this.image = image;
     }
 }

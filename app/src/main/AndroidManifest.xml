@@ -9,6 +9,8 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -33,7 +35,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".FirebaseCreateEventTestTempActivity">
+        <activity android:name=".UploadActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -48,10 +50,13 @@
             android:label="@string/title_activity_navigation"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".CreateEventActivity" />
+        <!-- exported="true" Should properbly be removed. FOr debuffing purposes now -->
         <activity
-            android:name=".UploadActivity"
+            android:name=".FirebaseCreateEventTestTempActivity"
+            android:exported="true"
             android:label="@string/title_activity_firebase_create_event_test_temp"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".FetchIssueActivity"></activity>
     </application>
 
 </manifest>

@@ -6,10 +6,12 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
-import com.dom.communityapp.UploadActivity;
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.Image;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -19,9 +21,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 
 /**
@@ -29,21 +31,29 @@ import java.util.ArrayList;
  */
 
 public class FirebaseDatabaseStorage {
+    private static final String IMG_LOCATION = "images/";
+
     //STORAGE:
-    Context mUploadActivity;
+    Context mContext;
     private UploadTask uploadTask;
-    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
-    private ArrayList<FirebaseObserver> observers = new ArrayList<>();
+    private StorageReference mFirebaseStorageReference;
+    private ArrayList<FirebaseObserver> observers;
     //DATABASE:
 
     //ref pointing to root
-    private DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+    private DatabaseReference mFirebaseRootReference;
 
-    DatabaseReference demoRef = rootRef.child("demo");
+    DatabaseReference mFirebaseIssueReference;
+    private FirebaseAuth mFirebaseAuth;
 
 
     public FirebaseDatabaseStorage(Context uploadActivity) {
-        this.mUploadActivity = uploadActivity;
+        this.mContext = uploadActivity;
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        this.mFirebaseRootReference = FirebaseDatabase.getInstance().getReference();
+        this.mFirebaseStorageReference = FirebaseStorage.getInstance().getReference();
+        this.mFirebaseIssueReference = mFirebaseRootReference.child("issues");
+        this.observers = new ArrayList<>();
     }
 
     public void addObserver(FirebaseObserver observer) {
@@ -58,18 +68,31 @@ public class FirebaseDatabaseStorage {
     public void saveToDatabase(String data) {
 
         // Chose one or the other:
-        demoRef.push().setValue(data);  //creates a unique id in database
-        //demoRef.child("value").setValue(data);  //creates one value, which is easy to fetch
+        mFirebaseIssueReference.push().setValue(data);  //creates a unique id in database
+        //mFirebaseIssueReference.child("value").setValue(data);  //creates one value, which is easy to fetch
+
+    }
+
+    public void saveIssueAndImageToDatabase(final CommunityIssue issue) {
+        final Image image = issue.getImage();
+        uploadFileLocal(image.getLocalFilePath(), new FirebaseFileUploadCallback() { // first we push the image
+            @Override
+            public void onUploadSuccess(Uri donwloaduri) { // When imaged is in storage we can save the issue
+                image.setImage_URL(donwloaduri); //Save reference to url in image
+                saveIssueToDatabase(issue); //Now push the issue
+
+            }
+        });
 
     }
 
     public void saveIssueToDatabase(CommunityIssue issue) {
-        demoRef.push().setValue(issue);
+        mFirebaseIssueReference.push().setValue(issue);
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
     public void addChangeListener() {
-        demoRef.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
+        mFirebaseIssueReference.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(FirebaseObserver observer : observers) {
@@ -84,19 +107,50 @@ public class FirebaseDatabaseStorage {
         });
     }
 
+    private void checkFirebaseSignInAndDoStuff(Consumer<Uri> consumer, Uri filepath) {
+        FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        if (user != null) {
+            consumer.accept(filepath);
+        } else {
+            signInAnonymously();
+        }
+
+    }
+
+    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) {
+        StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
+        uploadTask = imageRef.putFile(filepath);
+
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                callback.onUploadSuccess(downloadUrl);
+            }
+        });
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
     public void uploadFile(Uri filepath) {
         //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
         //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
         if (filepath != null) {
 
-            final ProgressDialog progressDialog = new ProgressDialog(mUploadActivity);
+            final ProgressDialog progressDialog = new ProgressDialog(mContext);
             progressDialog.setMax(100);
             progressDialog.setMessage("Uploading...");
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressDialog.show();
             progressDialog.setCancelable(false);
 
-            StorageReference imageRef = storageReference.child("images/" + filepath.getLastPathSegment());
+            StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
 
             uploadTask = imageRef.putFile(filepath);
 
@@ -105,19 +159,20 @@ public class FirebaseDatabaseStorage {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                    for(FirebaseObserver observer : observers) {
+
+                    for(FirebaseObserver observer : observers) { //Notify all observers about upload
                         observer.getImage(downloadUrl);
                     }
 
                     progressDialog.dismiss();
-                    Toast.makeText(mUploadActivity, "File Uploaded ", Toast.LENGTH_LONG).show();
+                    Toast.makeText(mContext, "File Uploaded ", Toast.LENGTH_LONG).show();
                 }
             });
             uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     progressDialog.dismiss();
-                    Toast.makeText(mUploadActivity, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 
@@ -133,6 +188,11 @@ public class FirebaseDatabaseStorage {
         else {
 
         }
+    }
+
+    private interface FirebaseFileUploadCallback {
+
+        void onUploadSuccess(Uri donwloaduri);
     }
 }
 
