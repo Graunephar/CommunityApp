@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.dom.communityapp.storage.FirebaseObserver;
 import com.squareup.picasso.Picasso;
@@ -59,7 +61,13 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
     @OnClick(R.id.btn_submit)
     public void saveToDB() {
         String value = edit_description.getText().toString();
-        firebaseDatabaseStorage.saveToDatabase(value);
+
+        IssueImage issueImage = new IssueImage();
+        issueImage.setLocalFilePath("HEJ");
+        issueImage.setImage_URL("HEJ");
+        CommunityIssue issue = new CommunityIssue(value, value, value, value, value, issueImage);
+
+        firebaseDatabaseStorage.saveToDatabase(issue);
     }
 
     @OnClick(R.id.btn_change_listener)
@@ -71,9 +79,9 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
     @OnClick(R.id.btn_img)
     public void showFileChooser() {
         Intent intent = new Intent();
-        intent.setType("image/*");
+        intent.setType("issueImage/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.select_picture_title)), PICK_IMAGE_REQUEST);
     }
 
     @OnClick(R.id.btn_upload)
@@ -89,7 +97,7 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
             filePath = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                //either set image locally from phone, or get it from firebase, using in FirebasaDatabaseStorage - Picasso.with(uploadActivity).load(downloadUrl).into(uploadActivity.img_view);
+                //either set issueImage locally from phone, or get it from firebase, using in FirebasaDatabaseStorage - Picasso.with(uploadActivity).load(downloadUrl).into(uploadActivity.img_view);
                 img_view.setImageBitmap(bitmap);
 
             } catch (IOException e) {
@@ -105,7 +113,7 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
 
     @Override
     public void getImage(Uri downloadUrl) {
-        //showing the uploaded image in ImageView using the download url. Choose this method or local method.
+        //showing the uploaded issueImage in ImageView using the download url. Choose this method or local method.
         Picasso.with(this).load(downloadUrl).into(img_view);
     }
 }

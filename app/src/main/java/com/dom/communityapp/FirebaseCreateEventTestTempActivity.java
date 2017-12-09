@@ -21,7 +21,7 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 import com.dom.communityapp.models.CommunityIssue;
-import com.dom.communityapp.models.Image;
+import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.google.android.gms.maps.MapView;
 
@@ -72,7 +72,6 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_firebase_create_event_test_temp);
 
-
         ButterKnife.bind(this);
 
         viewer = (ImageView) findViewById(R.id.imageview_event2);
@@ -111,7 +110,7 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
             mImageFilePath = getImageUri(getApplicationContext(), mTakenImage); //Get URI from bitmap
 
             // CALL THIS METHOD TO GET THE ACTUAL PATH
-            File finalFile = new File(getRealPathFromURI(mImageFilePath));
+            //File finalFile = new File(getRealPathFromURI(mImageFilePath));
 
 
         }
@@ -203,9 +202,9 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
         String tag_text = tag_spin.getSelectedItem().toString();
         String time_text = time_spin.getSelectedItem().toString();
 
-        Image image = new Image(mTakenImage, mImageFilePath);
+        IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
-        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, image);
+        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage);
 
         mStorage.saveIssueAndImageToDatabase(issue);
 

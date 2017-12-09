@@ -7,9 +7,10 @@ import android.support.annotation.NonNull;
 import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
-import com.dom.communityapp.models.Image;
+import com.dom.communityapp.models.IssueImage;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -23,7 +24,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
 
 
 /**
@@ -65,7 +65,7 @@ public class FirebaseDatabaseStorage {
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void saveToDatabase(String data) {
+    public void saveToDatabase(CommunityIssue data) {
 
         // Chose one or the other:
         mFirebaseIssueReference.push().setValue(data);  //creates a unique id in database
@@ -73,12 +73,26 @@ public class FirebaseDatabaseStorage {
 
     }
 
+
     public void saveIssueAndImageToDatabase(final CommunityIssue issue) {
-        final Image image = issue.getImage();
-        uploadFileLocal(image.getLocalFilePath(), new FirebaseFileUploadCallback() { // first we push the image
+        final IssueImage issueImage = issue.getIssueImage();
+
+        checkFirebaseSignInAndDoStuff(Uri.parse(issueImage.getLocalFilePath()), new FirebaseConsumer<Uri>() {
+            @Override
+            public void accept(Uri subject) {
+
+                uploadFileAndAddIssue(subject, issueImage, issue);
+
+            }
+        });
+
+    }
+
+    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) {
+        uploadFileLocal(filepath, new FirebaseFileUploadCallback() { // first we push the issueImage
             @Override
             public void onUploadSuccess(Uri donwloaduri) { // When imaged is in storage we can save the issue
-                image.setImage_URL(donwloaduri); //Save reference to url in image
+                issueImage.setImage_URL(String.valueOf(donwloaduri)); //Save reference to url in issueImage
                 saveIssueToDatabase(issue); //Now push the issue
 
             }
@@ -107,16 +121,32 @@ public class FirebaseDatabaseStorage {
         });
     }
 
-    private void checkFirebaseSignInAndDoStuff(Consumer<Uri> consumer, Uri filepath) {
+    private void checkFirebaseSignInAndDoStuff(Uri filepath, FirebaseConsumer<Uri> consumer) {
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
         if (user != null) {
             consumer.accept(filepath);
         } else {
-            signInAnonymously();
+            signInAnonymously(consumer, filepath);
         }
 
     }
 
+    private void signInAnonymously(final FirebaseConsumer<Uri> consumer, final Uri filepath) {
+        mFirebaseAuth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+            @Override
+            public void onSuccess(AuthResult authResult) {
+                consumer.accept(filepath);
+            }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        throw new AuthException(exception.getMessage());
+                    }
+                });
+    }
+
+    //Made to upload files in background without updating a gui at the same time...
     private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) {
         StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
         uploadTask = imageRef.putFile(filepath);
@@ -132,13 +162,24 @@ public class FirebaseDatabaseStorage {
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_LONG).show();
+                throw new AuthException(exception.getMessage());
             }
         });
 
     }
 
-    public void uploadFile(Uri filepath) {
+    public void uploadFile(final Uri filepath) {
+
+        checkFirebaseSignInAndDoStuff(filepath, new FirebaseConsumer<Uri>() {
+            @Override
+            public void accept(Uri subject) {
+                uploadFileFromActivity(filepath);
+            }
+        });
+
+    }
+
+    private void uploadFileFromActivity(Uri filepath) {
         //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
         //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
         if (filepath != null) {
@@ -193,6 +234,19 @@ public class FirebaseDatabaseStorage {
     private interface FirebaseFileUploadCallback {
 
         void onUploadSuccess(Uri donwloaduri);
+    }
+
+    private interface FirebaseConsumer<U> {
+        void accept(U subject);
+
+    }
+
+    private class AuthException extends RuntimeException {
+        private final String message;
+
+        public AuthException(String message) {
+            this.message = message;
+        }
     }
 }
 

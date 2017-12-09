@@ -36,9 +36,10 @@
     <string name="close">Close</string>
     <string name="btn_get_txt">Add change listener</string>
     <string name="btn_submit">submit txt to firebase db</string>
-    <string name="btn_upload">upload image to firebase storage</string>
-    <string name="btn_img">select image from phone</string>
+    <string name="btn_upload">upload issueImage to firebase storage</string>
+    <string name="btn_img">select issueImage from phone</string>
     <string name="title_activity_firebase_create_event_test_temp">
         FirebaseCreateEventTestTempActivity
     </string>
+    <string name="select_picture_title">Select Picture</string>
 </resources>

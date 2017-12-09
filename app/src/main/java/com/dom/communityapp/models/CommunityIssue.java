@@ -1,7 +1,5 @@
 package com.dom.communityapp.models;
 
-import android.graphics.Bitmap;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -15,7 +13,9 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable{
 
-    private Image image;
+    @Expose
+    @SerializedName("image")
+    public IssueImage issueImage;
 
     @Expose
     @SerializedName("coordinate")
@@ -49,20 +49,98 @@ public class CommunityIssue implements Serializable{
     @SerializedName("category")
     public String category;
 
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, Image image) {
+
+    //Default constructor required by firebase, just like the getters and setters for all the things
+    public CommunityIssue() {
+    }
+
+    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage) {
         this.category = cat_text;
         this.tag = tag_text;
         this.timed_duration = time_text;
         this.short_description= sshort;
         this.long_description = llong;
-        this.image = image;
+        this.issueImage = issueImage;
     }
 
-    public Image getImage() {
-        return image;
+    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text) {
+        this.category = cat_text;
+        this.tag = tag_text;
+        this.timed_duration = time_text;
+        this.short_description= sshort;
+        this.long_description = llong;
     }
 
-    public void setImage(Image image) {
-        this.image = image;
+
+    public LatLng getCoordinate() {
+        return coordinate;
+    }
+
+    public void setCoordinate(LatLng coordinate) {
+        this.coordinate = coordinate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLong_description() {
+        return long_description;
+    }
+
+    public void setLong_description(String long_description) {
+        this.long_description = long_description;
+    }
+
+    public String getShort_description() {
+        return short_description;
+    }
+
+    public void setShort_description(String short_description) {
+        this.short_description = short_description;
+    }
+
+    public List<String> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<String> comments) {
+        this.comments = comments;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public String getTimed_duration() {
+        return timed_duration;
+    }
+
+    public void setTimed_duration(String timed_duration) {
+        this.timed_duration = timed_duration;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public IssueImage getIssueImage() {
+        return issueImage;
+    }
+
+    public void setIssueImage(IssueImage issueImage) {
+        this.issueImage = issueImage;
     }
 }
