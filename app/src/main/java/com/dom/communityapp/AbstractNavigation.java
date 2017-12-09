@@ -101,6 +101,7 @@ public abstract class AbstractNavigation extends AppCompatActivity
             Toast.makeText(this, "OPEN Settings", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, DetailsActivity.class);
             startActivity(intent);
+            finish();
 
         } else if (id == R.id.action_create) {
             Toast.makeText(this, "OPEN CREATE", Toast.LENGTH_SHORT).show();

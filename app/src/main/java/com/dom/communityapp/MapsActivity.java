@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -39,7 +40,7 @@ import static com.dom.communityapp.utilities.settings.location.LocationConstants
 import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_LOW;
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng BRISBANE = new LatLng(10, 10);
@@ -137,7 +138,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mMapFragment = MapFragment.newInstance();
         FragmentTransaction fragmentTransaction =
                 getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.map_layout, mMapFragment);
+        fragmentTransaction.add(R.id.map_linear_layout, mMapFragment);
+
         fragmentTransaction.commit();
 
         mMapFragment.getMapAsync(this);
@@ -347,6 +349,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+
     }
 
 
