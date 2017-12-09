@@ -55,10 +55,12 @@ public class IssueImage implements Serializable{
         this.image_URL = image_URL;
     }
 
+    @Exclude
     public Bitmap getBitmap() {
         return bitmap;
     }
 
+    @Exclude
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
     }

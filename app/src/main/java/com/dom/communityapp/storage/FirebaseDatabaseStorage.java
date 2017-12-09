@@ -2,6 +2,8 @@ package com.dom.communityapp.storage;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
@@ -10,9 +12,11 @@ import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,6 +36,9 @@ import java.util.ArrayList;
 
 public class FirebaseDatabaseStorage {
     private static final String IMG_LOCATION = "images/";
+
+    final long FIVE_MEGABYTES = 1024 * 1024 * 5;
+    private final BitmapFactory mBitmapFactory;
 
     //STORAGE:
     Context mContext;
@@ -54,6 +61,50 @@ public class FirebaseDatabaseStorage {
         this.mFirebaseStorageReference = FirebaseStorage.getInstance().getReference();
         this.mFirebaseIssueReference = mFirebaseRootReference.child("issues");
         this.observers = new ArrayList<>();
+        this.mBitmapFactory = new BitmapFactory();
+        attachListeners();
+    }
+
+    private void attachListeners() {
+        mFirebaseIssueReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                final CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
+                issue.setFirebaseID(dataSnapshot.getKey());
+                final IssueImage image = issue.issueImage;
+
+                StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
+
+                httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    @Override
+                    public void onSuccess(byte[] bytes) {
+                        Bitmap bitmap = mBitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                        image.setBitmap(bitmap);
+                        for (FirebaseObserver observer : observers) {
+                            observer.imageDownloaded(issue);
+                        }
+                    }
+                });
+
+                for (FirebaseObserver observer : observers) {
+                    observer.onNewIssue(issue);
+                }
+            }
+
+            //TODO How many of these should be used?
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     public void addObserver(FirebaseObserver observer) {

@@ -1,6 +1,7 @@
 package com.dom.communityapp.models;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.Exclude;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -13,42 +14,26 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable{
 
-    @Expose
-    @SerializedName("image")
     public IssueImage issueImage;
 
-    @Expose
-    @SerializedName("coordinate")
     public LatLng coordinate;
 
-    @Expose
-    @SerializedName("name")
     public String name;
 
-    @Expose
-    @SerializedName("long_description")
     public String long_description;
 
-    @Expose
-    @SerializedName("short_description")
     public String short_description;
 
-    @Expose
-    @SerializedName("comments")
     public List<String> comments;
 
-    @Expose
-    @SerializedName("tag")
     public String tag;
 
-    @Expose
-    @SerializedName("time_duration")
     public String timed_duration;
 
-    @Expose
-    @SerializedName("category")
     public String category;
 
+    @Exclude
+    public String firebaseID;
 
     //Default constructor required by firebase, just like the getters and setters for all the things
     public CommunityIssue() {
@@ -142,5 +127,15 @@ public class CommunityIssue implements Serializable{
 
     public void setIssueImage(IssueImage issueImage) {
         this.issueImage = issueImage;
+    }
+
+    @Exclude
+    public String getFirebaseID() {
+        return firebaseID;
+    }
+
+    @Exclude
+    public void setFirebaseID(String firebaseID) {
+        this.firebaseID = firebaseID;
     }
 }

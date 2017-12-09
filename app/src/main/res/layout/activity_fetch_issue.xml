@@ -23,12 +23,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="31dp"
         android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/fetch_txt_view_shortdescriptio"
+        app:layout_constraintBottom_toTopOf="@+id/fetch_txt_view_longdescription"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/fetch_txt_view_shortdescriptio"
+        android:id="@+id/fetch_txt_view_longdescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="31dp"
@@ -45,7 +45,7 @@
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/fetch_txt_view_tag"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fetch_txt_view_shortdescriptio" />
+        app:layout_constraintTop_toBottomOf="@+id/fetch_txt_view_longdescription" />
 
     <TextView
         android:id="@+id/fetch_txt_view_tag"
@@ -74,7 +74,7 @@
         app:layout_constraintBottom_toTopOf="@+id/fetch_btn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.648"
-        app:layout_constraintStart_toEndOf="@+id/fetch_txt_view_shortdescriptio"
+        app:layout_constraintStart_toEndOf="@+id/fetch_txt_view_longdescription"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.51"
         app:srcCompat="@drawable/common_google_signin_btn_icon_dark" />

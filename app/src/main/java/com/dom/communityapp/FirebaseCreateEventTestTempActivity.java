@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,10 +28,13 @@ import com.google.android.gms.maps.MapView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import pl.aprilapps.easyphotopicker.DefaultCallback;
+import pl.aprilapps.easyphotopicker.EasyImage;
 
 
 /* This activity is a temporary copy of create event activity, made for
@@ -96,24 +100,52 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
 
+        EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-            Bundle bundle = data.getExtras();
 
-            mTakenImage = (Bitmap) bundle.get("data"); // Get The image itself
-            viewer.setImageBitmap(mTakenImage); // Update view with file
+        //from: https://github.com/jkwiecien/EasyImage
+        EasyImage.handleActivityResult(requestCode, resultCode, data, this, new DefaultCallback() {
+            @Override
+            public void onImagePickerError(Exception e, EasyImage.ImageSource source, int type) {
+                //TODO Some error handling
+            }
 
-            mImageFilePath = getImageUri(getApplicationContext(), mTakenImage); //Get URI from bitmap
+            @Override
+            public void onImagesPicked(List<File> imagesFiles, EasyImage.ImageSource source, int type) {
+                //Handle the images
+                onPhotosReturned(imagesFiles);
+            }
 
-            // CALL THIS METHOD TO GET THE ACTUAL PATH
-            //File finalFile = new File(getRealPathFromURI(mImageFilePath));
+            @Override
+            public void onCanceled(EasyImage.ImageSource source, int type) {
+                // Cancel handling, you might wanna remove taken photo if it was canceled
+                if (source == EasyImage.ImageSource.CAMERA) {
+                    File photoFile = EasyImage.lastlyTakenButCanceledPhoto(FirebaseCreateEventTestTempActivity.this);
+                    if (photoFile != null) photoFile.delete();
+                }
+            }
+
+        });
+    }
 
 
-        }
+    private void onPhotosReturned(List<File> imagesFiles) {
+
+        File file =imagesFiles.get(0);
+
+        mImageFilePath = Uri.fromFile(file); // get only image
+
+        BitmapFactory factory = new BitmapFactory();
+        mTakenImage = factory.decodeFile(String.valueOf(file.getAbsoluteFile()));
+
+        viewer.setImageBitmap(mTakenImage); // Update view with file
+
+
     }
 
     //Inspired by: https://stackoverflow.com/questions/45391290/ask-permission-for-write-external-storage
@@ -156,9 +188,9 @@ public class FirebaseCreateEventTestTempActivity extends AppCompatActivity {
     public void takePhoto() {
 
         if (checkFilePermission()) {
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(intent, CAMERA_REQUEST_CODE);
-            intent.putExtra("return-data", true);
+
+            EasyImage.openChooserWithGallery(this, String.valueOf(R.string.choose_image), 0);
+
         } else {
 
         }

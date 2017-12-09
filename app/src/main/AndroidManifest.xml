@@ -50,13 +50,17 @@
             android:label="@string/title_activity_navigation"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".CreateEventActivity" />
-        <!-- exported="true" Should properbly be removed. FOr debuffing purposes now -->
+        <!-- ALL THE CRAPPY ACTIVITIES... They should be removed at some point... FOr debuffing purposes now -->
         <activity
             android:name=".FirebaseCreateEventTestTempActivity"
             android:exported="true"
             android:label="@string/title_activity_firebase_create_event_test_temp"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".FetchIssueActivity"></activity>
+        <activity
+            android:name=".FetchIssueActivity"
+            android:exported="true"
+            android:label="FETCH"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

@@ -116,4 +116,14 @@ public class UploadActivity extends AppCompatActivity implements FirebaseObserve
         //showing the uploaded issueImage in ImageView using the download url. Choose this method or local method.
         Picasso.with(this).load(downloadUrl).into(img_view);
     }
+
+    @Override
+    public void onNewIssue(CommunityIssue issue) {
+
+    }
+
+    @Override
+    public void imageDownloaded(CommunityIssue issue) {
+
+    }
 }

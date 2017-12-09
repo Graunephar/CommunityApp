@@ -42,4 +42,5 @@
         FirebaseCreateEventTestTempActivity
     </string>
     <string name="select_picture_title">Select Picture</string>
+    <string name="choose_image">Choose a crappy image</string>
 </resources>
