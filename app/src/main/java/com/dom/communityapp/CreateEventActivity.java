@@ -45,7 +45,6 @@ public class CreateEventActivity extends AbstractNavigation {
         //setContentView(R.layout.activity_create_event);
         super.onCreate(savedInstanceState);
 
-
         viewer = (ImageView) findViewById(R.id.imageview_event);
         short_description = findViewById(R.id.edittext_short_description);
         long_description = findViewById(R.id.edittext_long_description);
