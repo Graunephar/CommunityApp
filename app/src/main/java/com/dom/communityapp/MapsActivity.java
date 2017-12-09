@@ -57,9 +57,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private boolean mFirstPosition = true;
     private MapFragment mMapFragment;
 
-
-
-
     public MapsActivity() {
         this.mLocationRequestQueue = new LinkedBlockingQueue<>();
         this.mLocationAsker = new LocationSettingAsker(this);
@@ -86,22 +83,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         }
 
-
-        /*GoogleMapOptions options = new GoogleMapOptions();
-        options.mapType(GoogleMap.MAP_TYPE_HYBRID)
-                .compassEnabled(false)
-                .rotateGesturesEnabled(false)
-                .tiltGesturesEnabled(false);*/
-
-        // Construct a GeoDataClient.
-        //mGeoDataClient = Places.getGeoDataClient(this, null);
-
-        // Construct a PlaceDetectionClient.
-        //mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
-
-        // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
 
         mLocationAsker.ask();
 
@@ -120,10 +102,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
             mFusedLocationProviderClient.requestLocationUpdates(LOCATION_HIGH, locationcallback, Looper.myLooper());
             mFusedLocationProviderClient.requestLocationUpdates(LOCATION_LOW, locationcallback, Looper.myLooper());
-
-
         }
-
 
         getLocationPermission(new PermissionRequestCallback() {
             @Override
@@ -145,7 +124,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mMapFragment.getMapAsync(this);
 
     }
-
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

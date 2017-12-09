@@ -13,16 +13,23 @@ import android.widget.Spinner;
 
 import com.google.android.gms.maps.MapView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 
 public class CreateEventActivity extends AbstractNavigation {
 
     //Local variable
 
     Bitmap myImage;
-    ImageView viewer;
-    EditText short_description, long_description;
-    Spinner tag_spin, cat_spin, time_spin;
-    MapView map_show;
+    @BindView(R.id.imageView_Event) ImageView viewer;
+    @BindView(R.id.Edittext_Short_despription) EditText short_description;
+    @BindView(R.id.Edittext_Long_despription) EditText long_description;
+    @BindView(R.id.spinner_tags) Spinner tag_spin;
+    @BindView(R.id.spinner_categories) Spinner cat_spin;
+    @BindView(R.id.spinner_time_required) Spinner time_spin;
+    @BindView(R.id.mapView_create_event) MapView map_show;
 
     //Request codes
     private static final int CAMERA_REQUEST_CODE = 11;
@@ -45,25 +52,7 @@ public class CreateEventActivity extends AbstractNavigation {
         //setContentView(R.layout.activity_create_event);
         super.onCreate(savedInstanceState);
 
-
-        viewer = (ImageView) findViewById(R.id.imageView_Event);
-        short_description = findViewById(R.id.Edittext_Short_despription);
-        long_description = findViewById(R.id.Edittext_Long_despription);
-        tag_spin = findViewById(R.id.spinner_tags);
-        cat_spin = findViewById(R.id.spinner_categories);
-        time_spin = findViewById(R.id.spinner_time_required);
-        map_show = findViewById(R.id.mapView_create_event);
-
-        viewer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                startActivityForResult(intent, CAMERA_REQUEST_CODE);
-                intent.putExtra("return-data", true);
-            }
-        });
-
+        ButterKnife.bind(this);
         //Adapter for tag_spin
         ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.tags));
@@ -95,36 +84,12 @@ public class CreateEventActivity extends AbstractNavigation {
         }
     }
 
+    @OnClick(R.id.imageView_Event)
+    public void takePicture() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.navigation, menu);
-        return true;
+        startActivityForResult(intent, CAMERA_REQUEST_CODE);
+        intent.putExtra("return-data", true);
     }
 
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if(mToggle.onOptionsItemSelected(item)){
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Toast.makeText(this, "sadfas", Toast.LENGTH_SHORT).show();
-        //if (item.getItemId() == R...ID) startActivity(new Itent);
-        return false;
-    }
-*/
-//
-//    @Override
-//    public void onPointerCaptureChanged(boolean hasCapture) {
-//
-//    }
 }
