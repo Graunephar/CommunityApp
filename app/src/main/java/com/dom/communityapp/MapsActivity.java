@@ -3,19 +3,24 @@ package com.dom.communityapp;
 import android.Manifest;
 import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.widget.Toast;
 
 
+import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.storage.FirebaseDatabaseStorage;
+import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.utilities.settings.location.LocationSettingAsker;
 import com.dom.communityapp.utilities.settings.location.PermissionRequestCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -26,27 +31,30 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.ui.IconGenerator;
 
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_HIGH;
 import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_LOW;
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver{
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng BRISBANE = new LatLng(10, 10);
     private static final float DEFAULT_ZOOM = 15;
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
+    private final FirebaseDatabaseStorage mFirebaseStorage;
     private GoogleMap mMap;
     private boolean mLocationPermissionGranted;
     private Location mLastKnownLocation;
@@ -56,10 +64,14 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private LinkedBlockingQueue<PermissionRequestCallback> mLocationRequestQueue;
     private boolean mFirstPosition = true;
     private MapFragment mMapFragment;
+    private IconGenerator mIconFactory;
+    private Bitmap mBitmap;
 
     public MapsActivity() {
         this.mLocationRequestQueue = new LinkedBlockingQueue<>();
         this.mLocationAsker = new LocationSettingAsker(this);
+        this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
+        this.mFirebaseStorage.addObserver(this);
     }
 
     @Override
@@ -122,6 +134,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         fragmentTransaction.commit();
 
         mMapFragment.getMapAsync(this);
+
+        this.mIconFactory = new IconGenerator(this); // Start a factory for custom icons
 
     }
 
@@ -211,7 +225,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
         updateMap();
@@ -227,11 +241,22 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
-            public void onMapClick(LatLng latLng) {
-                Toast.makeText(getApplicationContext(), "CLICK CLICK", Toast.LENGTH_SHORT).show();
+            public void onMapClick(LatLng position) {
+                addIcon(mIconFactory, "Hej hej", position);
             }
         });
 
+    }
+
+    private void addIcon(IconGenerator iconFactory, CharSequence text, LatLng position) {
+        MarkerOptions markerOptions = new MarkerOptions().
+                icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("LORT"))).
+                position(position).
+                title("HEJ").
+                snippet("HEJ HEJ").
+                anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+
+        mMap.addMarker(markerOptions);
     }
 
     private void updateMap() {
@@ -331,4 +356,34 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
 
+    @Override
+    public void onDataChanged(String value) {
+
+    }
+
+    @Override
+    public void getImage(Uri downloadUrl) {
+
+    }
+
+    @Override
+    public void onNewIssue(CommunityIssue issue) {
+
+    }
+
+    @Override
+    public void imageDownloaded(CommunityIssue issue) {
+
+        Bitmap issuebitmap = issue.issueImage.getBitmap();
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+
+        Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+
+        mBitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
+
+        Toast.makeText(getApplicationContext(), "IMAGE LOADED", Toast.LENGTH_LONG).show();
+    }
 }
