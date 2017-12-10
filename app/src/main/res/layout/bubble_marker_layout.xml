@@ -14,7 +14,8 @@
         <ImageView
             android:id="@+id/marker_icon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_work_category"/>
 
         <TextView
             android:id="@+id/marker_label"
