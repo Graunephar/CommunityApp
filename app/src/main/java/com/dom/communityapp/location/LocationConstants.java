@@ -1,4 +1,4 @@
-package com.dom.communityapp.utilities.settings.location;
+package com.dom.communityapp.location;
 
 import com.google.android.gms.location.LocationRequest;
 

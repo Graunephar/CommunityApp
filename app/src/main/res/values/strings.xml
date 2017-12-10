@@ -43,4 +43,6 @@
     </string>
     <string name="select_picture_title">Select Picture</string>
     <string name="choose_image">Choose a crappy image</string>
+    <string name="noticication_channel_description">Lorterøv</string>
+    <string name="noticication_channel_name">Lorterøv</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.dom.communityapp.utilities.settings.location;
+package com.dom.communityapp.location;
 
 /**
  * Created by daniel on 11/30/17.

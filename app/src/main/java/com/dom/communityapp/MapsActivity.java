@@ -1,32 +1,30 @@
 package com.dom.communityapp;
 
-import android.Manifest;
 import android.app.FragmentTransaction;
-import android.content.pm.PackageManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Looper;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.widget.Toast;
 
 
+import com.dom.communityapp.location.LocationService;
+import com.dom.communityapp.location.LocationUpdateCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.dom.communityapp.storage.FirebaseObserver;
-import com.dom.communityapp.utilities.settings.location.LocationSettingAsker;
-import com.dom.communityapp.utilities.settings.location.PermissionRequestCallback;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
+import com.dom.communityapp.location.LocationSettingAsker;
+import com.dom.communityapp.location.PermissionRequestCallback;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -36,42 +34,38 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_HIGH;
-import static com.dom.communityapp.utilities.settings.location.LocationConstants.LOCATION_LOW;
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver{
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver {
 
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng BRISBANE = new LatLng(10, 10);
     private static final float DEFAULT_ZOOM = 15;
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
     private final FirebaseDatabaseStorage mFirebaseStorage;
     private GoogleMap mMap;
-    private boolean mLocationPermissionGranted;
     private Location mLastKnownLocation;
-    private LocationSettingAsker mLocationAsker;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
-    private LinkedBlockingQueue<PermissionRequestCallback> mLocationRequestQueue;
-    private boolean mFirstPosition = true;
     private MapFragment mMapFragment;
     private IconGenerator mIconFactory;
+    private LocationService mService;
+    private boolean mBound;
+    private ServiceConnection mConnection;
     private Bitmap mBitmap;
+    private boolean mFirstPosition = true;
+    private LocationSettingAsker mLocationAsker;
+    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
+
 
     public MapsActivity() {
-        this.mLocationRequestQueue = new LinkedBlockingQueue<>();
-        this.mLocationAsker = new LocationSettingAsker(this);
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
         this.mFirebaseStorage.addObserver(this);
+        this.mLocationAsker = new LocationSettingAsker(this);
+
+
     }
 
     @Override
@@ -89,40 +83,14 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         super.onCreate(savedInstanceState);
         //setContentView(getLayoutid());
 
+        mLocationAsker.ask();
+
+
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
         }
-
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        mLocationAsker.ask();
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-
-            final LocationCallback locationcallback = new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    super.onLocationResult(locationResult);
-                    updateMap();
-                }
-            };
-
-            mFusedLocationProviderClient.requestLocationUpdates(LOCATION_HIGH, locationcallback, Looper.myLooper());
-            mFusedLocationProviderClient.requestLocationUpdates(LOCATION_LOW, locationcallback, Looper.myLooper());
-        }
-
-        getLocationPermission(new PermissionRequestCallback() {
-            @Override
-            public void onPermissionGranted() {
-                // Empty this is a null object pattern case
-
-            }
-        });
 
         updateLocationUI();
 
@@ -139,13 +107,19 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
+
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (mMap != null) {
-            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
-            super.onSaveInstanceState(outState);
-        }
+    protected void onStart() {
+        super.onStart();
+        bindToService();
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindFromService();
+    }
+
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     private void updateLocationUI() {
@@ -153,18 +127,18 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             return;
         }
         try {
-            if (mLocationPermissionGranted) {
+            if (mLocationAsker.havePermission()) {
+
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
-
 
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
                 mLastKnownLocation = null;
-                getLocationPermission(new PermissionRequestCallback() {
+                mLocationAsker.getLocationPermission(new PermissionRequestCallback() {
                     @Override
-                    public void onPermissionGranted() {
+                    public void onPermissionGranted() { //TODO Should we not always let the service ask for permission?
                         updateLocationUI();
                     }
                 });
@@ -175,54 +149,14 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
 
-    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
-
-    private void getLocationPermission(PermissionRequestCallback callback) {
-    /*
-     * Request location permission, so that we can get the location of the
-     * device. The result of the permission request is handled by a callback,
-     * onRequestPermissionsResult.
-     */
-
-
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-            if (callback != null) callback.onPermissionGranted();
-
-
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-            if (callback != null) mLocationRequestQueue.add(callback);
-        }
-    }
-
-    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        mLocationPermissionGranted = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
-
-                    //TODO Should the quere expire? This should be probably tested.
-                    //Empty request queue make everything happen
-                    for (PermissionRequestCallback callback : mLocationRequestQueue) {
-                        callback.onPermissionGranted();
-                    }
-
-                }
-            }
+    protected void onSaveInstanceState(Bundle outState) {
+        if (mMap != null) {
+            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
+            super.onSaveInstanceState(outState);
         }
-
-        updateLocationUI();
     }
+
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
@@ -248,6 +182,35 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
+
+    private void updateMap() {
+
+                updateLocationUI();
+
+                if(mBound) {
+                    mService.getDeviceLocation(new LocationUpdateCallback() {
+                        @Override
+                        public void newLocation(Location location) {
+                            if(mFirstPosition) {
+                                centerView();
+                                mFirstPosition = false;
+                            }
+
+                        }
+
+                        @Override
+                        public void failed(Exception exception) {
+                            //TODO Camera should probably not be moved here....
+                            Log.d(TAG, "Current location is null. Using defaults.");
+                            Log.e(TAG, "Exception: %s");
+                            mMap.moveCamera(CameraUpdateFactory
+                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                        }
+                    });
+                }
+    }
+
     private void addIcon(IconGenerator iconFactory, CharSequence text, LatLng position) {
         MarkerOptions markerOptions = new MarkerOptions().
                 icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("LORT"))).
@@ -259,17 +222,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mMap.addMarker(markerOptions);
     }
 
-    private void updateMap() {
-        getLocationPermission(new PermissionRequestCallback() {
-            @Override
-            public void onPermissionGranted() {
-
-                updateLocationUI();
-
-                getDeviceLocation();
-            }
-        });
-    }
 
     @Override
     public void onPoiClick(PointOfInterest poi) {
@@ -311,50 +263,27 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
-        getDeviceLocation();
 
+        if(mBound) {
+            mService.getDeviceLocation(new LocationUpdateCallback() {
+                @Override
+                public void newLocation(Location location) {
+                }
+
+                @Override
+                public void failed(Exception exception) {
+
+                }
+            });
+        }
 
         return false;
     }
 
-    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial
-    private void getDeviceLocation() {
-    /*
-     * Get the best and most recent location of the device, which may be null in rare
-     * cases when a location is not available.
-     */
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
 
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.)
-                            mLastKnownLocation = task.getResult();
-                            if(mFirstPosition) {
-                                centerView();
-                                mFirstPosition = false;
-                            }
-
-                        } else {
-                            //TODO Camera should probably not be moved here....
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
-        }
-
-    }
-
+    /**
+     * Storage stuff
+     **/
 
     @Override
     public void onDataChanged(String value) {
@@ -386,4 +315,69 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         Toast.makeText(getApplicationContext(), "IMAGE LOADED", Toast.LENGTH_LONG).show();
     }
+
+    /**
+     * Swervice stuff
+     **/
+
+    private void bindToService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (mBound == false) {
+            this.mConnection = createNewServiceConnection();
+            bindService(new Intent(this,
+                    LocationService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        mLocationAsker.onResult(requestCode, permissions, grantResults);
+        if(mLocationAsker.havePermission()) {
+            updateLocationUI();
+        }
+    }
+
+    void unbindFromService() {
+        if (mBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    private ServiceConnection createNewServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mService = ((LocationService.LocalBinder) service).getService();
+
+                //Do stuff when bound here
+
+                mBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mBound = false;
+                mService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mBound = false;
+            }
+        };
+    }
+
+
+
+
 }
