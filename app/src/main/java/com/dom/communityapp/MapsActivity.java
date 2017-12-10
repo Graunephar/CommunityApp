@@ -26,6 +26,11 @@ import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.location.LocationSettingAsker;
 import com.dom.communityapp.location.PermissionRequestCallback;
+import com.dom.communityapp.ui.InfoWindowAdapter;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -57,10 +62,12 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private boolean mBound;
     private ServiceConnection mConnection;
     private Bitmap mBitmap;
+<<<<<<< HEAD
     private LocationSettingAsker mLocationAsker;
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;
 
+    private CommunityIssue lastIssue;
 
     public MapsActivity() {
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
@@ -177,11 +184,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             public void onMapClick(LatLng position) {
                 updateMap();
 
+                lastIssue.setCoordinate(position);
+                
+                addIcon(lastIssue);
             }
         });
 
     }
-
 
     private void updateMap() {
 
@@ -192,15 +201,14 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                 }
     }
 
-    private void addIcon(IconGenerator iconFactory, CharSequence text, LatLng position) {
+    private void addIcon(CommunityIssue issue) {
         MarkerOptions markerOptions = new MarkerOptions().
-                icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("LORT"))).
-                position(position).
-                title("HEJ").
-                snippet("HEJ HEJ").
-                anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+                position(issue.getCoordinate());
 
-        mMap.addMarker(markerOptions);
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(issue.getIcon()));
+        Marker currentMarker = mMap.addMarker(markerOptions);
+
+        mMap.setInfoWindowAdapter(new InfoWindowAdapter(this, lastIssue));
     }
 
 
@@ -270,22 +278,23 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     public void onNewIssue(CommunityIssue issue) {
 
+        lastIssue = issue;
     }
 
     @Override
     public void imageDownloaded(CommunityIssue issue) {
 
-        Bitmap issuebitmap = issue.issueImage.getBitmap();
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-
-        Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-
-        mBitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-
-        Toast.makeText(getApplicationContext(), "IMAGE LOADED", Toast.LENGTH_LONG).show();
+        if(lastIssue.getFirebaseID() == issue.getFirebaseID()) {
+            Bitmap issuebitmap = issue.issueImage.getBitmap();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
+            Toast.makeText(getApplicationContext(), "IMAGE LOADED", Toast.LENGTH_LONG).show();
+            lastIssue.getIssueImage().setBitmap(croppedbitmap);
+        }
     }
 
     /**

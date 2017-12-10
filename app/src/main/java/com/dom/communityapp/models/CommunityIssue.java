@@ -2,6 +2,7 @@ package com.dom.communityapp.models;
 
 import android.location.Location;
 
+import com.dom.communityapp.R;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
 import com.google.gson.annotations.Expose;
@@ -152,5 +153,10 @@ public class CommunityIssue implements Serializable{
     @Exclude
     public void setFirebaseID(String firebaseID) {
         this.firebaseID = firebaseID;
+    }
+
+    @Exclude
+    public int getIcon() {
+        return R.drawable.bubble_mask;
     }
 }
