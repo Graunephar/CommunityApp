@@ -30,6 +30,7 @@ import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.location.LocationSettingAsker;
 import com.dom.communityapp.location.LocationUpdateCallback;
+import com.dom.communityapp.location.PermissionRequestCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
@@ -220,7 +221,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         if(mLocationAsker.onResult(requestCode, permissions, grantResults)) {
             if(mBound) {
-                mService.getDeviceLocation();
+                mService.getDeviceLocation(); //Not sure if this is redundant
             }
         }
 
@@ -253,13 +254,25 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         if(mLastKnownLocation != null) {
             transmitIssue();
-        } else if(mBound) {
+        } else if(mBound){
+            giveMeLocation();
+        } else {
+            tellUserNoLOcation();
+        }
+
+    }
+
+    /** Tries to get a permission using different methods
+     * Calls back on create event when changed
+     */
+    private void giveMeLocation() {
+        if(mLocationAsker.havePermission()) {
+
             mService.getDeviceLocation(new LocationUpdateCallback() {
                 @Override
                 public void newLocation(Location location) {
-                    createEvent();
+                    createEvent(); // THis should have done it try again
                 }
-
                 @Override
                 public void failed(Exception exception) {
                     tellUserNoLOcation();
@@ -267,10 +280,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             });
 
         } else {
-
-            tellUserNoLOcation();
+            mLocationAsker.askForPermission(new PermissionRequestCallback() {
+                @Override
+                public void onPermissionGranted() {
+                    createEvent(); // THis should have done it try again
+                }
+            });
         }
-
     }
 
     private void tellUserNoLOcation() {
@@ -291,7 +307,6 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         String time_text = time_spin.getSelectedItem().toString();
 
         IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
-
 
         double latitude = mLastKnownLocation.getLatitude();
         double longitude = mLastKnownLocation.getLongitude();
@@ -343,7 +358,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
                 mBound = true;
 
-                mService.getDeviceLocation();
+                checkLocationPermissionIfNoAsk();
 
             }
 
@@ -360,6 +375,18 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         };
     }
 
+    private void checkLocationPermissionIfNoAsk() {
+        if(mLocationAsker.havePermission()) {
+            mService.getDeviceLocation();
+        } else {
+            mLocationAsker.askForPermission(new PermissionRequestCallback() {
+                @Override
+                public void onPermissionGranted() {
+                    mService.getDeviceLocation();
+                }
+            });
+        }
+    }
 
     @Override
     public void locationIncoming(Location location) {

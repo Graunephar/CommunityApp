@@ -38,10 +38,9 @@ public class LocationCommunityService extends Service {
     private BroadCastSendUtility mBroadcastUtility;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private LocationSettingAsker mAsker;
 
     public LocationCommunityService() {
-        mBinder = new LocalBinder();
+        this.mBinder = new LocalBinder();
     }
 
     @Override
@@ -113,28 +112,24 @@ public class LocationCommunityService extends Service {
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial
     public void getDeviceLocation(LocationUpdateCallback locationUpdateCallback) {
-    /*
-     * Get the best and most recent location of the device, which may be null in rare
-     * cases when a location is not available.
-     */
-        try {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.)
-                            broadCastLocation(task.getResult());
 
-                        }
+        try {
+            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+            locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
+                @Override
+                public void onComplete(@NonNull Task<Location> task) {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.)
+                        broadCastLocation(task.getResult());
+
                     }
-                });
+                }
+            });
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
 
     }
-
 
 
 }

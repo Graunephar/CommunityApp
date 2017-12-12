@@ -196,7 +196,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
                 updateLocationUI();
 
-                if(mBound) {
+                if(mBound && mLocationAsker.havePermission()) {
                     mService.getDeviceLocation();
                 }
     }
@@ -253,7 +253,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
 
-        if(mBound) {
+        if(mBound && mLocationAsker.havePermission()) {
             mService.getDeviceLocation();
         }
 
@@ -342,8 +342,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
                 mBound = true;
 
-
-                mService.getDeviceLocation();
+                if(mLocationAsker.havePermission()) mService.getDeviceLocation();
 
             }
 
