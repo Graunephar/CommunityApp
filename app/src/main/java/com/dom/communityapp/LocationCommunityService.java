@@ -61,7 +61,7 @@ public class LocationCommunityService extends Service {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     super.onLocationResult(locationResult);
-                    broadCastLocation(locationResult);
+                    broadCastLocation(locationResult.getLastLocation());
                 }
             };
 
@@ -70,8 +70,8 @@ public class LocationCommunityService extends Service {
         }
     }
 
-    private void broadCastLocation(LocationResult locationResult) {
-        mBroadcastUtility.broadCastLocation(locationResult.getLastLocation());
+    private void broadCastLocation(Location location) {
+        mBroadcastUtility.broadCastLocation(location);
     }
 
 
@@ -88,6 +88,21 @@ public class LocationCommunityService extends Service {
         return mBinder;
     }
 
+    public void getDeviceLocation() {
+
+        getDeviceLocation(new LocationUpdateCallback() { ////YYYYYAAAAHHHHHHHBRRRBRBBRBRBR THis does not seem like a pretty way
+            @Override
+            public void newLocation(Location location) {
+                //Empty caller soes not care about callbacks
+            }
+
+            @Override
+            public void failed(Exception exception) {
+            }
+        });
+
+    }
+
 
     public class LocalBinder extends Binder {
         public LocationCommunityService getService() {
@@ -97,7 +112,7 @@ public class LocationCommunityService extends Service {
     }
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial
-    public void getDeviceLocation(final LocationUpdateCallback callback) {
+    public void getDeviceLocation(LocationUpdateCallback locationUpdateCallback) {
     /*
      * Get the best and most recent location of the device, which may be null in rare
      * cases when a location is not available.
@@ -109,10 +124,8 @@ public class LocationCommunityService extends Service {
                     public void onComplete(@NonNull Task<Location> task) {
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.)
-                            callback.newLocation(task.getResult());
+                            broadCastLocation(task.getResult());
 
-                        } else {
-                            callback.failed(task.getException());
                         }
                     }
                 });

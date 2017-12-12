@@ -1,11 +1,17 @@
 package com.dom.communityapp;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -16,7 +22,12 @@ import android.widget.ImageView;
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.dom.communityapp.location.BroadCastReceiveUitility;
+import com.dom.communityapp.location.LocationListener;
+import com.dom.communityapp.location.LocationSettingAsker;
+import com.dom.communityapp.location.LocationUpdateCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
@@ -32,7 +43,7 @@ import pl.aprilapps.easyphotopicker.DefaultCallback;
 import pl.aprilapps.easyphotopicker.EasyImage;
 
 
-public class CreateEventActivity extends AbstractNavigation {
+public class CreateEventActivity extends AbstractNavigation implements LocationListener {
 
     //Local variable
 
@@ -53,9 +64,20 @@ public class CreateEventActivity extends AbstractNavigation {
 
     //Request codes
     private static final int CAMERA_REQUEST_CODE = 11;
+    private boolean mBound;
+    private ServiceConnection mConnection;
+    private LocationSettingAsker mLocationAsker;
+    private Location mLastKnownLocation;
+    private LocationCommunityService mService;
+    private BroadCastReceiveUitility mBroadCastRecieveUtility;
 
     //private DrawerLayout mDrawerLayout;
     //private ActionBarDrawerToggle mToggle;
+
+
+    public CreateEventActivity() {
+        this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
+    }
 
     @Override
     protected DrawerLayout getdrawerLayout() {
@@ -93,9 +115,9 @@ public class CreateEventActivity extends AbstractNavigation {
 
         EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
 
+        mLocationAsker = new LocationSettingAsker(this);
 
     }
-
 
     /** Taking piuctures**/
 
@@ -103,13 +125,26 @@ public class CreateEventActivity extends AbstractNavigation {
     public void takePicture() {
         if (checkFilePermission()) {
 
-            EasyImage.openChooserWithGallery(this, String.valueOf(R.string.choose_image), 0);
+            EasyImage.openChooserWithGallery(this, getString(R.string.choose_image), 0);
 
         } else {
 
         }
     }
 
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindToService();
+        mBroadCastRecieveUtility.registerForBroadcasts();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindFromService();
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -179,6 +214,13 @@ public class CreateEventActivity extends AbstractNavigation {
     //Inspired by: https://stackoverflow.com/questions/45391290/ask-permission-for-write-external-storage
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+
+        if(mLocationAsker.onResult(requestCode, permissions, grantResults)) {
+            if(mBound) {
+                mService.getDeviceLocation();
+            }
+        }
+
         switch (requestCode) {
             case 0:
                 boolean isPerpermissionForAllGranted = false;
@@ -205,7 +247,11 @@ public class CreateEventActivity extends AbstractNavigation {
 
     @OnClick(R.id.create_event_btn)
     public void createEvent() {
+        transmitIssue();
 
+    }
+
+    private void transmitIssue() {
         String sshort = short_description.getText().toString();
         String llong = long_description.getText().toString();
         String cat_text = cat_spin.getSelectedItem().toString();
@@ -214,9 +260,74 @@ public class CreateEventActivity extends AbstractNavigation {
 
         IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
-        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage);
+        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, mLastKnownLocation);
 
         mStorage.saveIssueAndImageToDatabase(issue);
 
+    }
+
+
+    /**
+     * Service stuff
+     **/
+
+    private void bindToService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (mBound == false) {
+            this.mConnection = createNewServiceConnection();
+            bindService(new Intent(this,
+                    LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    private void askforLocation() {
+
+    }
+
+    void unbindFromService() {
+        if (mBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    private ServiceConnection createNewServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mService = ((LocationCommunityService.LocalBinder) service).getService();
+
+                mBound = true;
+
+                mService.getDeviceLocation();
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mBound = false;
+                mService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mBound = false;
+            }
+        };
+    }
+
+
+    @Override
+    public void locationIncoming(Location location) {
+
+        mLastKnownLocation = location;
+        Toast.makeText(getApplicationContext(), location.toString(), Toast.LENGTH_LONG).show();
     }
 }

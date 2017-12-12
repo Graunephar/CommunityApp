@@ -59,6 +59,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private Bitmap mBitmap;
     private LocationSettingAsker mLocationAsker;
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
+    private boolean mFirstLocation = true;
 
 
     public MapsActivity() {
@@ -187,22 +188,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                 updateLocationUI();
 
                 if(mBound) {
-                    mService.getDeviceLocation(new LocationUpdateCallback() {
-                        @Override
-                        public void newLocation(Location location) {
-                            mLastKnownLocation = location;
-                        }
-
-                        @Override
-                        public void failed(Exception exception) {
-                            //TODO Camera should probably not be moved here....
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s");
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    });
+                    mService.getDeviceLocation();
                 }
     }
 
@@ -260,16 +246,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // marker is centered and for the marker's info window to open, if it has one).
 
         if(mBound) {
-            mService.getDeviceLocation(new LocationUpdateCallback() {
-                @Override
-                public void newLocation(Location location) {
-                }
-
-                @Override
-                public void failed(Exception exception) {
-
-                }
-            });
+            mService.getDeviceLocation();
         }
 
         return false;
@@ -312,7 +289,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     /**
-     * Swervice stuff
+     * Service stuff
      **/
 
     private void bindToService() {
@@ -357,17 +334,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                 mBound = true;
 
 
-                mService.getDeviceLocation(new LocationUpdateCallback() {
-                    @Override
-                    public void newLocation(Location location) {
-                        mLastKnownLocation = location;
-                        centerView();
-                    }
-                    @Override
-                    public void failed(Exception exception) {
-
-                    }
-                });
+                mService.getDeviceLocation();
 
             }
 
@@ -387,8 +354,11 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     
     @Override
     public void locationIncoming(Location location) {
-
         mLastKnownLocation = location;
-        updateMap();
+
+        if(mFirstLocation) {
+            centerView();
+            mFirstLocation = false;
+        }
     }
 }

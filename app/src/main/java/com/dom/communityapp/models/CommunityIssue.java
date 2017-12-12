@@ -1,5 +1,7 @@
 package com.dom.communityapp.models;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
 import com.google.gson.annotations.Expose;
@@ -16,7 +18,7 @@ public class CommunityIssue implements Serializable{
 
     public IssueImage issueImage;
 
-    public LatLng coordinate;
+    public Location coordinate;
 
     public String name;
 
@@ -48,6 +50,16 @@ public class CommunityIssue implements Serializable{
         this.issueImage = issueImage;
     }
 
+    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage, Location coordinate) {
+        this.category = cat_text;
+        this.tag = tag_text;
+        this.timed_duration = time_text;
+        this.short_description= sshort;
+        this.long_description = llong;
+        this.issueImage = issueImage;
+        this.coordinate = coordinate;
+    }
+
     public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text) {
         this.category = cat_text;
         this.tag = tag_text;
@@ -57,11 +69,11 @@ public class CommunityIssue implements Serializable{
     }
 
 
-    public LatLng getCoordinate() {
+    public Location getCoordinate() {
         return coordinate;
     }
 
-    public void setCoordinate(LatLng coordinate) {
+    public void setCoordinate(Location coordinate) {
         this.coordinate = coordinate;
     }
 

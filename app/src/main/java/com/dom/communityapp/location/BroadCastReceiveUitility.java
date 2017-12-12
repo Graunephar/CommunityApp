@@ -28,7 +28,6 @@ public class BroadCastReceiveUitility {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
-
                 Location location = (Location) bundle.getParcelable(EXTRA_LAST_LOCATION);
                 mActivity.locationIncoming(location);
             }
