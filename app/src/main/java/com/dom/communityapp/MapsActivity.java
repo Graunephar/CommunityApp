@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -62,7 +63,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private boolean mBound;
     private ServiceConnection mConnection;
     private Bitmap mBitmap;
-<<<<<<< HEAD
     private LocationSettingAsker mLocationAsker;
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;

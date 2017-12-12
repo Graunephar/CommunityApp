@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
 import java.util.List;
@@ -290,7 +292,12 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
-        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, mLastKnownLocation);
+
+        double latitude = mLastKnownLocation.getLatitude();
+        double longitude = mLastKnownLocation.getLongitude();
+        LatLng latlng = new LatLng(latitude, longitude);
+
+        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
 
         mStorage.saveIssueAndImageToDatabase(issue);
 

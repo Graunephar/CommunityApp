@@ -20,7 +20,7 @@ public class CommunityIssue implements Serializable{
     public IssueImage issueImage;
 
     @Exclude
-    public Location coordinate;
+    public LatLng coordinate;
 
     public String name;
 
@@ -52,7 +52,7 @@ public class CommunityIssue implements Serializable{
         this.issueImage = issueImage;
     }
 
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage, Location coordinate) {
+    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage, LatLng coordinate) {
         this.category = cat_text;
         this.tag = tag_text;
         this.timed_duration = time_text;
@@ -72,12 +72,12 @@ public class CommunityIssue implements Serializable{
 
 
     @Exclude
-    public Location getCoordinate() {
+    public LatLng getCoordinate() {
         return coordinate;
     }
 
     @Exclude
-    public void setCoordinate(Location coordinate) {
+    public void setCoordinate(LatLng coordinate) {
         this.coordinate = coordinate;
     }
 

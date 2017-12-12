@@ -167,8 +167,8 @@ public class FirebaseDatabaseStorage {
 
         mFirebaseIssueReference.child(id).setValue(issue); // ref https://stackoverflow.com/questions/37094631/get-the-pushed-id-for-specific-value-in-firebase-android
 
-        double latitude = issue.getCoordinate().getLatitude();
-        double longitude = issue.getCoordinate().getLongitude();
+        double latitude = issue.getCoordinate().latitude;
+        double longitude = issue.getCoordinate().longitude;
         GeoLocation location = new GeoLocation(latitude, longitude);
         this.mGeoFire.setLocation(id, location);
 
