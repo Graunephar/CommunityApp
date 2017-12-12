@@ -30,8 +30,6 @@ public class LocationSettingAsker implements SettingAsker{
 
     private static final int REQUEST_CHECK_SETTINGS = 42;
     private final Activity context;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private boolean mLocationPermissionGranted;
     private LinkedBlockingQueue<PermissionRequestCallback> mLocationRequestQueue;
 
     public LocationSettingAsker(Activity context) {
@@ -118,6 +116,11 @@ public class LocationSettingAsker implements SettingAsker{
             @Override
             public void permissionGranted() {
                 callback.onPermissionGranted();
+
+                while (!mLocationRequestQueue.isEmpty()) { // If we have old permission requests we will let them know that there is now permission
+                    PermissionRequestCallback oldcallback = mLocationRequestQueue.remove();
+                    oldcallback.onPermissionGranted(); //TODO Old permission requests should poperbly expire at some point
+                }
             }
 
             @Override
