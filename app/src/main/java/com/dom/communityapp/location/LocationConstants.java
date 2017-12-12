@@ -19,4 +19,6 @@ public class LocationConstants {
             .setPriority(PRIORITY_BALANCED_POWER_ACCURACY)
             .setInterval(35);
 
+    public static final String EXTRA_LAST_LOCATION = "extra_last_location";
+
 }

@@ -48,6 +48,7 @@
             </intent-filter>
         </activity>
 
+
         <!-- ALL THE CRAPPY ACTIVITIES... They should be removed at some point... FOr debuffing purposes now -->
         <activity
             android:name=".FetchIssueActivity"
@@ -56,6 +57,13 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity android:name=".DetailsActivity" />
+
+        <service
+            android:name=".LocationCommunityService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
     </application>
 
 </manifest>

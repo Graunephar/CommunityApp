@@ -18,7 +18,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 
-import com.dom.communityapp.location.LocationService;
+import com.dom.communityapp.location.BroadCastReceiveUitility;
+import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.location.LocationUpdateCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
@@ -40,22 +41,22 @@ import java.io.ByteArrayOutputStream;
 
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener {
 
     private static final LatLng BRISBANE = new LatLng(10, 10);
     private static final float DEFAULT_ZOOM = 15;
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
     private final FirebaseDatabaseStorage mFirebaseStorage;
+    private final BroadCastReceiveUitility mBroadCastRecieveUtility;
     private GoogleMap mMap;
     private Location mLastKnownLocation;
     private MapFragment mMapFragment;
     private IconGenerator mIconFactory;
-    private LocationService mService;
+    private LocationCommunityService mService;
     private boolean mBound;
     private ServiceConnection mConnection;
     private Bitmap mBitmap;
-    private boolean mFirstPosition = true;
     private LocationSettingAsker mLocationAsker;
     private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
 
@@ -65,7 +66,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         this.mFirebaseStorage.addObserver(this);
         this.mLocationAsker = new LocationSettingAsker(this);
 
-
+        this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
     }
 
     @Override
@@ -112,6 +113,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     protected void onStart() {
         super.onStart();
         bindToService();
+        mBroadCastRecieveUtility.registerForBroadcasts();
     }
 
     @Override
@@ -176,7 +178,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng position) {
-                addIcon(mIconFactory, "Hej hej", position);
+                updateMap();
+
             }
         });
 
@@ -191,11 +194,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                     mService.getDeviceLocation(new LocationUpdateCallback() {
                         @Override
                         public void newLocation(Location location) {
-                            if(mFirstPosition) {
-                                centerView();
-                                mFirstPosition = false;
-                            }
-
+                            mLastKnownLocation = location;
                         }
 
                         @Override
@@ -327,8 +326,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // supporting component replacement by other applications).
         if (mBound == false) {
             this.mConnection = createNewServiceConnection();
-            bindService(new Intent(this,
-                    LocationService.class), mConnection, Context.BIND_AUTO_CREATE);
+            final boolean b = bindService(new Intent(this,
+                    LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
+
+            Toast.makeText(getApplicationContext(), "HEJ HEJ", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -357,11 +358,23 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             public void onServiceConnected(ComponentName className,
                                            IBinder service) {
                 // We've bound to LocalService, cast the IBinder and get LocalService instance
-                mService = ((LocationService.LocalBinder) service).getService();
-
-                //Do stuff when bound here
+                mService = ((LocationCommunityService.LocalBinder) service).getService();
 
                 mBound = true;
+
+
+                mService.getDeviceLocation(new LocationUpdateCallback() {
+                    @Override
+                    public void newLocation(Location location) {
+                        mLastKnownLocation = location;
+                        centerView();
+                    }
+                    @Override
+                    public void failed(Exception exception) {
+
+                    }
+                });
+
             }
 
             @Override
@@ -377,7 +390,11 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         };
     }
 
+    
+    @Override
+    public void locationIncoming(Location location) {
 
-
-
+        mLastKnownLocation = location;
+        updateMap();
+    }
 }

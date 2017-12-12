@@ -1,4 +1,4 @@
-package com.dom.communityapp.location;
+package com.dom.communityapp;
 
 import android.Manifest;
 import android.app.Service;
@@ -9,21 +9,18 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.dom.communityapp.location.BroadCastSendUtility;
+import com.dom.communityapp.location.LocationSettingAsker;
+import com.dom.communityapp.location.LocationUpdateCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.dom.communityapp.location.LocationConstants.LOCATION_HIGH;
 import static com.dom.communityapp.location.LocationConstants.LOCATION_LOW;
@@ -33,18 +30,18 @@ import static java.lang.Thread.sleep;
  * Created by daniel on 12/10/17.
  */
 
-public class LocationService extends Service {
+public class LocationCommunityService extends Service {
 
 
     private final IBinder mBinder;
     private final String logTag = "LOCATION_SERVICE";
+    private BroadCastSendUtility mBroadcastUtility;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private LocationSettingAsker mAsker;
 
-    public LocationService(LocationSettingAsker asker) {
+    public LocationCommunityService() {
         mBinder = new LocalBinder();
-        this.mAsker = asker;
     }
 
     @Override
@@ -52,6 +49,7 @@ public class LocationService extends Service {
         super.onCreate();
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        this.mBroadcastUtility = new BroadCastSendUtility(this);
 
 
         if (ContextCompat.checkSelfPermission(this,
@@ -63,32 +61,24 @@ public class LocationService extends Service {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     super.onLocationResult(locationResult);
-                    broadCastLocation();
+                    broadCastLocation(locationResult);
                 }
             };
 
             mFusedLocationProviderClient.requestLocationUpdates(LOCATION_HIGH, locationcallback, Looper.myLooper());
             mFusedLocationProviderClient.requestLocationUpdates(LOCATION_LOW, locationcallback, Looper.myLooper());
         }
-
-        mAsker.getLocationPermission(new PermissionRequestCallback() {
-            @Override
-            public void onPermissionGranted() {
-                // Empty this is a null object pattern case
-
-            }
-        });
     }
 
-    private void broadCastLocation() {
-        //TODO implement this
+    private void broadCastLocation(LocationResult locationResult) {
+        mBroadcastUtility.broadCastLocation(locationResult.getLastLocation());
     }
 
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(logTag, "Weather service destroyed");
+        Log.d(logTag, "Location service destroyed");
         //mPreferenceUtility.saveToSharedPreferences(mCityNameList);
     }
 
@@ -100,13 +90,11 @@ public class LocationService extends Service {
 
 
     public class LocalBinder extends Binder {
-        public LocationService getService() {
+        public LocationCommunityService getService() {
             // Return this instance of LocalService so clients can call public methods
-            return LocationService.this;
+            return LocationCommunityService.this;
         }
     }
-
-
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial
     public void getDeviceLocation(final LocationUpdateCallback callback) {
@@ -115,7 +103,6 @@ public class LocationService extends Service {
      * cases when a location is not available.
      */
         try {
-            if (mAsker.havePermission()) {
                 Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(new OnCompleteListener<Location>() {
                     @Override
@@ -129,7 +116,6 @@ public class LocationService extends Service {
                         }
                     }
                 });
-            }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
