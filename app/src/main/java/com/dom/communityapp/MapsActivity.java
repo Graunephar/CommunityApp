@@ -64,8 +64,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public MapsActivity() {
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
         this.mFirebaseStorage.addObserver(this);
-        this.mLocationAsker = new LocationSettingAsker(this);
-
         this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
     }
 
@@ -84,16 +82,14 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         super.onCreate(savedInstanceState);
         //setContentView(getLayoutid());
 
-        mLocationAsker.ask();
-
-
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
         }
 
-        updateLocationUI();
+        this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
+        mLocationAsker.askToChangeSettings(); // Ask user to turn on location
 
         mMapFragment = MapFragment.newInstance();
         FragmentTransaction fragmentTransaction =
@@ -138,9 +134,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
                 mLastKnownLocation = null;
-                mLocationAsker.getLocationPermission(new PermissionRequestCallback() {
+                mLocationAsker.askForPermission(new PermissionRequestCallback() {
                     @Override
-                    public void onPermissionGranted() { //TODO Should we not always let the service ask for permission?
+                    public void onPermissionGranted() { //TODO Should we not always let the service askToChangeSettings for permission?
                         updateLocationUI();
                     }
                 });
@@ -336,9 +332,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        mLocationAsker.onResult(requestCode, permissions, grantResults);
-        if(mLocationAsker.havePermission()) {
+        if(mLocationAsker.onResult(requestCode, permissions, grantResults)) {
             updateLocationUI();
         }
     }

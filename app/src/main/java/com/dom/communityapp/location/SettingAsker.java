@@ -6,7 +6,7 @@ package com.dom.communityapp.location;
 
 public interface SettingAsker {
 
-    void ask();
+    void askToChangeSettings();
 
     boolean onResult(int requestCode, String[] permissions, int[] grantResults);
 

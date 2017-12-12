@@ -1,10 +1,9 @@
 package com.dom.communityapp.location;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -16,6 +15,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.concurrent.LinkedBlockingQueue;
+
+import pl.tajchert.nammu.Nammu;
+import pl.tajchert.nammu.PermissionCallback;
 
 import static com.dom.communityapp.location.LocationConstants.LOCATION_HIGH;
 import static com.dom.communityapp.location.LocationConstants.LOCATION_LOW;
@@ -36,10 +38,12 @@ public class LocationSettingAsker implements SettingAsker{
         this.context = context;
         this.mLocationRequestQueue = new LinkedBlockingQueue<>();
 
+        Nammu.init(context.getApplicationContext());
+
     }
 
     @Override
-    public void ask() {
+    public void askToChangeSettings() {
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(LOCATION_LOW)
@@ -90,58 +94,38 @@ public class LocationSettingAsker implements SettingAsker{
 
     @Override
     public boolean havePermission() {
-        return mLocationPermissionGranted;
+        if (Nammu.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public boolean onResult(int requestCode, String[] permissions, int[] grantResults) {
-
-        boolean result = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-
-                    //TODO Should the quere expire? This should be probably tested.
-                    //Empty request queue make everything happen
-                    for (PermissionRequestCallback callback : mLocationRequestQueue) {
-                        callback.onPermissionGranted();
-                    }
-
-                    result = true;
-                }
-            }
-        }
-
-        return result;
-
+        Nammu.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        return havePermission();
     }
 
 
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
-    public void getLocationPermission(PermissionRequestCallback callback) {
-    /*
-     * Request location permission, so that we can get the location of the
-     * device. The result of the permission request is handled by a callback,
-     * onRequestPermissionsResult.
-     */
+    public void askForPermission(final PermissionRequestCallback callback) {
 
 
-        if (ContextCompat.checkSelfPermission(context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-            if (callback != null) callback.onPermissionGranted();
+        Nammu.askForPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION, new PermissionCallback() {
 
+            @Override
+            public void permissionGranted() {
+                callback.onPermissionGranted();
+            }
 
-        } else {
-            ActivityCompat.requestPermissions(context,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-            if (callback != null) mLocationRequestQueue.add(callback);
-        }
+            @Override
+            public void permissionRefused() {
+                mLocationRequestQueue.add(callback);
+            }
+        });
+
     }
 
 
