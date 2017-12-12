@@ -1,5 +1,6 @@
 package com.dom.communityapp;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
@@ -247,7 +248,36 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     @OnClick(R.id.create_event_btn)
     public void createEvent() {
-        transmitIssue();
+
+        if(mLastKnownLocation != null) {
+            transmitIssue();
+        } else if(mBound) {
+            mService.getDeviceLocation(new LocationUpdateCallback() {
+                @Override
+                public void newLocation(Location location) {
+                    createEvent();
+                }
+
+                @Override
+                public void failed(Exception exception) {
+                    tellUserNoLOcation();
+                }
+            });
+
+        } else {
+
+            tellUserNoLOcation();
+        }
+
+    }
+
+    private void tellUserNoLOcation() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.wait_location_message)
+                .setTitle(R.string.wait_location_title);
+
+        AlertDialog dialog = builder.create();
+
 
     }
 
@@ -326,8 +356,6 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     @Override
     public void locationIncoming(Location location) {
-
         mLastKnownLocation = location;
-        Toast.makeText(getApplicationContext(), location.toString(), Toast.LENGTH_LONG).show();
     }
 }

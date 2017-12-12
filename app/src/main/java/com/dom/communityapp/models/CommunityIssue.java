@@ -18,6 +18,7 @@ public class CommunityIssue implements Serializable{
 
     public IssueImage issueImage;
 
+    @Exclude
     public Location coordinate;
 
     public String name;
@@ -69,10 +70,12 @@ public class CommunityIssue implements Serializable{
     }
 
 
+    @Exclude
     public Location getCoordinate() {
         return coordinate;
     }
 
+    @Exclude
     public void setCoordinate(Location coordinate) {
         this.coordinate = coordinate;
     }

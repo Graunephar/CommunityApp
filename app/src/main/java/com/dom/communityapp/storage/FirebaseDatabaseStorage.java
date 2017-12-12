@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -45,12 +47,13 @@ public class FirebaseDatabaseStorage {
     private UploadTask uploadTask;
     private StorageReference mFirebaseStorageReference;
     private ArrayList<FirebaseObserver> observers;
-    //DATABASE:
 
+    //DATABASE:
     //ref pointing to root
     private DatabaseReference mFirebaseRootReference;
 
-    DatabaseReference mFirebaseIssueReference;
+    private DatabaseReference mFirebaseIssueReference;
+    private  GeoFire mGeoFire;
     private FirebaseAuth mFirebaseAuth;
 
 
@@ -60,6 +63,9 @@ public class FirebaseDatabaseStorage {
         this.mFirebaseRootReference = FirebaseDatabase.getInstance().getReference();
         this.mFirebaseStorageReference = FirebaseStorage.getInstance().getReference();
         this.mFirebaseIssueReference = mFirebaseRootReference.child("issues");
+        DatabaseReference georeference = mFirebaseRootReference.child("coordinates");
+        this.mGeoFire = new GeoFire(georeference);
+
         this.observers = new ArrayList<>();
         this.mBitmapFactory = new BitmapFactory();
         attachListeners();
@@ -73,18 +79,22 @@ public class FirebaseDatabaseStorage {
                 issue.setFirebaseID(dataSnapshot.getKey());
                 final IssueImage image = issue.issueImage;
 
-                StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
+                if(image != null) {
 
-                httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                    @Override
-                    public void onSuccess(byte[] bytes) {
-                        Bitmap bitmap = mBitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        image.setBitmap(bitmap);
-                        for (FirebaseObserver observer : observers) {
-                            observer.imageDownloaded(issue);
+                    StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
+
+                    httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                        @Override
+                        public void onSuccess(byte[] bytes) {
+                            Bitmap bitmap = mBitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            image.setBitmap(bitmap);
+                            for (FirebaseObserver observer : observers) {
+                                observer.imageDownloaded(issue);
+                            }
                         }
-                    }
-                });
+                    });
+
+                }
 
                 for (FirebaseObserver observer : observers) {
                     observer.onNewIssue(issue);
@@ -152,7 +162,16 @@ public class FirebaseDatabaseStorage {
     }
 
     public void saveIssueToDatabase(CommunityIssue issue) {
-        mFirebaseIssueReference.push().setValue(issue);
+
+        String id = mFirebaseIssueReference.push().getKey();
+
+        mFirebaseIssueReference.child(id).setValue(issue); // ref https://stackoverflow.com/questions/37094631/get-the-pushed-id-for-specific-value-in-firebase-android
+
+        double latitude = issue.getCoordinate().getLatitude();
+        double longitude = issue.getCoordinate().getLongitude();
+        GeoLocation location = new GeoLocation(latitude, longitude);
+        this.mGeoFire.setLocation(id, location);
+
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
@@ -257,7 +276,6 @@ public class FirebaseDatabaseStorage {
                     }
 
                     progressDialog.dismiss();
-                    Toast.makeText(mContext, "File Uploaded ", Toast.LENGTH_LONG).show();
                 }
             });
             uploadTask.addOnFailureListener(new OnFailureListener() {
