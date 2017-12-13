@@ -28,7 +28,9 @@ import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
+import com.dom.communityapp.storage.IssueLocationListener;
 import com.dom.communityapp.ui.InfoWindowAdapter;
+import com.dom.communityapp.ui.InfoWindowAdapterManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -37,13 +39,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.ui.BubbleIconFactory;
 import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
 
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener, IssueLocationListener {
 
     private static final LatLng BRISBANE = new LatLng(10, 10);
     private static final float DEFAULT_ZOOM = 15;
@@ -64,6 +67,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private boolean mFirstLocation = true;
 
     private CommunityIssue lastIssue;
+    private InfoWindowAdapterManager mAdapterManager;
 
     public MapsActivity() {
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
@@ -151,27 +155,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
+        mAdapterManager = new InfoWindowAdapterManager();
+        mMap.setInfoWindowAdapter(mAdapterManager);
+
         updateMap();
-
-        Marker mBrisbane = mMap.addMarker(new MarkerOptions()
-                .position(BRISBANE)
-                .title("Brisbane")
-                .snippet("The Bane of Bris"));
-        mBrisbane.setTag(0);
-
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
-            //Please delete this
-            @Override
-            public void onMapClick(LatLng position) {
-                updateMap();
-
-                lastIssue.setCoordinate(position);
-
-                addIcon(lastIssue);
-            }
-        });
-
     }
 
     @SuppressLint("MissingPermission")
@@ -258,8 +245,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         markerOptions.icon(BitmapDescriptorFactory.fromResource(issue.getIcon()));
         Marker currentMarker = mMap.addMarker(markerOptions);
+        this.mAdapterManager.addAdapter(currentMarker, new InfoWindowAdapter(this, issue));
 
-        mMap.setInfoWindowAdapter(new InfoWindowAdapter(this, lastIssue));
     }
 
 
@@ -350,6 +337,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
                 mBound = true;
 
+                mFirstLocation = true;
                 if (mLocationAsker.havePermission()) mService.getDeviceLocation();
 
             }
@@ -368,13 +356,37 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
 
+
+
     @Override
     public void locationIncoming(Location location) {
         mLastKnownLocation = location;
 
         if (this.mFirstLocation) {
             centerView();
+            startLocationListening(location);
             mFirstLocation = false;
         }
+    }
+
+    private void startLocationListening(Location location) {
+        mFirebaseStorage.addLocationListener(this);
+        mFirebaseStorage.addLocationQuery(location, 2);
+
+    }
+
+    @Override
+    public void issueRemoved(CommunityIssue issue) {
+
+    }
+
+    @Override
+    public void newIssue(CommunityIssue issue) {
+        addIcon(issue);
+    }
+
+    @Override
+    public void movedIssue(CommunityIssue issue) {
+
     }
 }
