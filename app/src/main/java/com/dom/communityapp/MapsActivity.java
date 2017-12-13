@@ -1,8 +1,11 @@
 package com.dom.communityapp;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -97,7 +100,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         }
 
         this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
-        mLocationAsker.askToChangeSettings(); // Ask user to turn on location
+        mLocationAsker.askToChangeSettings(null); // Ask user to turn on location
 
         mMapFragment = MapFragment.newInstance();
         FragmentTransaction fragmentTransaction =
@@ -133,22 +136,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             return;
         }
         try {
-            if (mLocationAsker.havePermission()) {
-
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-            } else {
-                mMap.setMyLocationEnabled(false);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
-                mLocationAsker.askForPermission(new PermissionRequestCallback() {
-                    @Override
-                    public void onPermissionGranted() { //TODO Should we not always let the service askToChangeSettings for permission?
-                        updateLocationUI();
-                    }
-                });
-            }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
@@ -180,25 +170,93 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mBrisbane.setTag(0);
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+            //Please delete this
             @Override
             public void onMapClick(LatLng position) {
                 updateMap();
 
                 lastIssue.setCoordinate(position);
-                
+
                 addIcon(lastIssue);
             }
         });
 
     }
 
+    @SuppressLint("MissingPermission")
     private void updateMap() {
 
-                updateLocationUI();
+        if (mLocationAsker.havePermission()) {
 
-                if(mBound && mLocationAsker.havePermission()) {
-                    mService.getDeviceLocation();
+            if (mBound) {
+                mService.getDeviceLocation();
+            }
+
+            updateLocationUI();
+
+        } else {
+
+            mMap.setMyLocationEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mLastKnownLocation = null;
+            mLocationAsker.askForPermission(new PermissionRequestCallback() {
+                @Override
+                public void onPermissionGranted() {
+                    updateLocationUI();
+                    mFirstLocation = true;
                 }
+
+                @Override
+                public void onPermissionRefused() {
+                    alertAndAsk();
+                }
+
+                @Override
+                public boolean expirable() {
+                    return false;
+                }
+
+
+            });
+        }
+    }
+
+    private void alertAndAsk() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.no_location_permission_message)
+                .setTitle(R.string.no_location_permission_title);
+        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish(); // We cannot do anything abort the app
+            }
+        });
+
+
+        builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                mLocationAsker.askForPermission(new PermissionRequestCallback() {
+                    @Override
+                    public void onPermissionGranted() {
+                        updateMap();
+                    }
+
+                    @Override
+                    public void onPermissionRefused() {
+                        alertAndAsk();
+                    }
+
+                    @Override
+                    public boolean expirable() {
+                        return false;
+                    }
+                });
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
     }
 
     private void addIcon(CommunityIssue issue) {
@@ -253,7 +311,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
 
-        if(mBound && mLocationAsker.havePermission()) {
+        if (mBound && mLocationAsker.havePermission()) {
             mService.getDeviceLocation();
         }
 
@@ -285,7 +343,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void imageDownloaded(CommunityIssue issue) {
 
 
-        if(lastIssue.getFirebaseID() == issue.getFirebaseID()) {
+        if (lastIssue.getFirebaseID() == issue.getFirebaseID()) {
             Bitmap issuebitmap = issue.issueImage.getBitmap();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
@@ -318,7 +376,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(mLocationAsker.onResult(requestCode, permissions, grantResults)) {
+        if (mLocationAsker.onResult(requestCode, permissions, grantResults)) {
             updateLocationUI();
         }
     }
@@ -342,7 +400,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
                 mBound = true;
 
-                if(mLocationAsker.havePermission()) mService.getDeviceLocation();
+                if (mLocationAsker.havePermission()) mService.getDeviceLocation();
 
             }
 
@@ -359,12 +417,12 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         };
     }
 
-    
+
     @Override
     public void locationIncoming(Location location) {
         mLastKnownLocation = location;
 
-        if(mFirstLocation) {
+        if (mFirstLocation) {
             centerView();
             mFirstLocation = false;
         }

@@ -3,6 +3,7 @@ package com.dom.communityapp;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -45,6 +46,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pl.aprilapps.easyphotopicker.DefaultCallback;
 import pl.aprilapps.easyphotopicker.EasyImage;
+import pl.tajchert.nammu.PermissionCallback;
 
 
 public class CreateEventActivity extends AbstractNavigation implements LocationListener {
@@ -74,6 +76,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     private Location mLastKnownLocation;
     private LocationCommunityService mService;
     private BroadCastReceiveUitility mBroadCastRecieveUtility;
+    private boolean mUnpushedLocationWaiting = false;
 
     //private DrawerLayout mDrawerLayout;
     //private ActionBarDrawerToggle mToggle;
@@ -119,7 +122,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
 
-        mLocationAsker = new LocationSettingAsker(this);
+        this.mLocationAsker = new LocationSettingAsker(this);
 
     }
 
@@ -252,41 +255,103 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     @OnClick(R.id.create_event_btn)
     public void createEvent() {
 
-        if(mLastKnownLocation != null) {
-            transmitIssue();
-        } else if(mBound){
-            giveMeLocation();
-        } else {
-            tellUserNoLOcation();
-        }
 
+        mLocationAsker.askToChangeSettings(new PermissionCallback() {
+            @Override
+            public void permissionGranted() {
+                if(mLastKnownLocation != null) {
+                    transmitIssue();
+                 } else if(mBound){
+                    giveMeLocation();
+                } else {
+                    tellUserNoLOcation();
+                }
+
+            }
+
+            @Override
+            public void permissionRefused() {
+                giveMeLocation();
+            }
+        });
     }
 
     /** Tries to get a permission using different methods
      * Calls back on create event when changed
      */
     private void giveMeLocation() {
+
         if(mLocationAsker.havePermission()) {
 
-            mService.getDeviceLocation(new LocationUpdateCallback() {
-                @Override
-                public void newLocation(Location location) {
-                    createEvent(); // THis should have done it try again
-                }
-                @Override
-                public void failed(Exception exception) {
-                    tellUserNoLOcation();
-                }
-            });
+            fetchLocationAndPush();
 
         } else {
             mLocationAsker.askForPermission(new PermissionRequestCallback() {
                 @Override
                 public void onPermissionGranted() {
-                    createEvent(); // THis should have done it try again
+                    fetchLocationAndPush(); // THis should have done it try again
+                }
+
+                @Override
+                public void onPermissionRefused() {
+                    alertAndAsk();
+                }
+
+                @Override
+                public boolean expirable() {
+                    return true;
                 }
             });
         }
+    }
+
+    private void fetchLocationAndPush() {
+        if(mLastKnownLocation != null) {
+            transmitIssue();
+        } else {
+            this.mUnpushedLocationWaiting = true;
+            mService.getDeviceLocation();
+        }
+
+    }
+
+
+    private void alertAndAsk() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.no_location_permission_message)
+                .setTitle(R.string.no_location_permission_title);
+        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish(); // We cannot do anything abort the app
+            }
+        });
+
+
+        builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                mLocationAsker.askForPermission(new PermissionRequestCallback() {
+                    @Override
+                    public void onPermissionGranted() {
+                        createEvent();
+                    }
+
+                    @Override
+                    public void onPermissionRefused() {
+                        alertAndAsk();
+                    }
+
+                    @Override
+                    public boolean expirable() {
+                        return true;
+                    }
+                });
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
     }
 
     private void tellUserNoLOcation() {
@@ -295,26 +360,32 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
                 .setTitle(R.string.wait_location_title);
 
         AlertDialog dialog = builder.create();
+        dialog.show();
 
 
     }
 
     private void transmitIssue() {
-        String sshort = short_description.getText().toString();
-        String llong = long_description.getText().toString();
-        String cat_text = cat_spin.getSelectedItem().toString();
-        String tag_text = tag_spin.getSelectedItem().toString();
-        String time_text = time_spin.getSelectedItem().toString();
 
-        IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
+        if(mLastKnownLocation == null ) {
+            createEvent(); // Stuff not working call back
+        } else {
+            String sshort = short_description.getText().toString();
+            String llong = long_description.getText().toString();
+            String cat_text = cat_spin.getSelectedItem().toString();
+            String tag_text = tag_spin.getSelectedItem().toString();
+            String time_text = time_spin.getSelectedItem().toString();
 
-        double latitude = mLastKnownLocation.getLatitude();
-        double longitude = mLastKnownLocation.getLongitude();
-        LatLng latlng = new LatLng(latitude, longitude);
+            IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
-        CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
+            double latitude = mLastKnownLocation.getLatitude();
+            double longitude = mLastKnownLocation.getLongitude();
+            LatLng latlng = new LatLng(latitude, longitude);
 
-        mStorage.saveIssueAndImageToDatabase(issue);
+            CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
+
+            mStorage.saveIssueAndImageToDatabase(issue);
+        }
 
     }
 
@@ -358,8 +429,9 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
                 mBound = true;
 
-                checkLocationPermissionIfNoAsk();
-
+                if(mLocationAsker.havePermission()) {
+                    mService.getDeviceLocation();
+                }
             }
 
             @Override
@@ -375,21 +447,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         };
     }
 
-    private void checkLocationPermissionIfNoAsk() {
-        if(mLocationAsker.havePermission()) {
-            mService.getDeviceLocation();
-        } else {
-            mLocationAsker.askForPermission(new PermissionRequestCallback() {
-                @Override
-                public void onPermissionGranted() {
-                    mService.getDeviceLocation();
-                }
-            });
-        }
-    }
 
     @Override
     public void locationIncoming(Location location) {
-        mLastKnownLocation = location;
+        if(location != null) this.mLastKnownLocation = location;
+        if(mUnpushedLocationWaiting) { // we have an issue waiting to be pushed
+            fetchLocationAndPush();
+            mUnpushedLocationWaiting = false;
+        }
     }
 }

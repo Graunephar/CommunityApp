@@ -47,4 +47,8 @@
     <string name="noticication_channel_name">Lorterøv</string>
     <string name="wait_location_message">We have not been able to get a location. Please wait for your device to updater and try again</string>
     <string name="wait_location_title">No location :(</string>
+    <string name="no_location_permission_message">This app requires permission to function. If you do not give us permission to access your location this app will not function</string>
+    <string name="no_location_permission_title">Are you really sure?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

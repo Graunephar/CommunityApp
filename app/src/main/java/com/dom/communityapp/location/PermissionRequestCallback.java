@@ -8,4 +8,7 @@ public interface PermissionRequestCallback {
 
     void onPermissionGranted();
 
+    void onPermissionRefused();
+
+    boolean expirable();
 }

@@ -87,21 +87,6 @@ public class LocationCommunityService extends Service {
         return mBinder;
     }
 
-    public void getDeviceLocation() {
-
-        getDeviceLocation(new LocationUpdateCallback() { ////YYYYYAAAAHHHHHHHBRRRBRBBRBRBR THis does not seem like a pretty way
-            @Override
-            public void newLocation(Location location) {
-                //Empty caller soes not care about callbacks
-            }
-
-            @Override
-            public void failed(Exception exception) {
-            }
-        });
-
-    }
-
 
     public class LocalBinder extends Binder {
         public LocationCommunityService getService() {
@@ -111,7 +96,7 @@ public class LocationCommunityService extends Service {
     }
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial
-    public void getDeviceLocation(LocationUpdateCallback locationUpdateCallback) {
+    public void getDeviceLocation() {
 
         try {
             Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();

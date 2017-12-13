@@ -3,7 +3,7 @@ package com.dom.communityapp.location;
 import android.Manifest;
 import android.app.Activity;
 import android.content.IntentSender;
-import android.content.pm.PackageManager;
+import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -40,13 +40,14 @@ public class LocationSettingAsker implements SettingAsker{
 
     }
 
+
+    //ref https://developer.android.com/training/location/change-location-settings.html
     @Override
-    public void askToChangeSettings() {
+    public void askToChangeSettings(@Nullable final PermissionCallback callback) {
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(LOCATION_LOW)
                 .addLocationRequest(LOCATION_HIGH);
-
 
         Task<LocationSettingsResponse> result =
                 LocationServices.getSettingsClient(context).checkLocationSettings(builder.build());
@@ -58,7 +59,7 @@ public class LocationSettingAsker implements SettingAsker{
                     LocationSettingsResponse response = task.getResult(ApiException.class);
                     // All location settings are satisfied. The client can initialize location
                     // requests here.
-                    //TODO We have connection
+                    if(callback != null) callback.permissionGranted();
                 } catch (ApiException exception) {
                     switch (exception.getStatusCode()) {
                         case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
@@ -77,15 +78,17 @@ public class LocationSettingAsker implements SettingAsker{
                             } catch (ClassCastException e) {
                                 // Ignore, should be an impossible error.
                             }
+                            if(callback != null) callback.permissionGranted();
                             break;
                         case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                             // Location settings are not satisfied. However, we have no way to fix the
                             // settings so we won't show the dialog.
-                            //TODO Should we do something here????
+                            if(callback != null) callback.permissionRefused();
                             break;
                     }
                 }
             }
+
         });
 
     }
@@ -119,12 +122,15 @@ public class LocationSettingAsker implements SettingAsker{
 
                 while (!mLocationRequestQueue.isEmpty()) { // If we have old permission requests we will let them know that there is now permission
                     PermissionRequestCallback oldcallback = mLocationRequestQueue.remove();
-                    oldcallback.onPermissionGranted(); //TODO Old permission requests should poperbly expire at some point
+                    if(!oldcallback.expirable()) {
+                        oldcallback.onPermissionGranted(); //TODO Old permission requests should poperbly expire at some point
+                    }
                 }
             }
 
             @Override
             public void permissionRefused() {
+                callback.onPermissionRefused();
                 mLocationRequestQueue.add(callback);
             }
         });
