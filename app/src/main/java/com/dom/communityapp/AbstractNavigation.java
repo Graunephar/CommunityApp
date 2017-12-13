@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,6 +21,7 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
 
     private ActionBarDrawerToggle mToggle;
+    private String logTag = "ABSTRACT_NAVN";
 
 
     protected abstract DrawerLayout getdrawerLayout();
@@ -92,19 +94,19 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
         if (id == R.id.action_map) {
             // Handle the camera action
-            Toast.makeText(this, "OPEN MAP", Toast.LENGTH_SHORT).show();
+            Log.d(logTag, "OPEN MAP");
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
             finish();
 
         } else if (id == R.id.action_settings ) {
-            Toast.makeText(this, "OPEN Settings", Toast.LENGTH_SHORT).show();
+            Log.d(logTag, "OPEN DETAILS");
             Intent intent = new Intent(this, DetailsActivity.class);
             startActivity(intent);
             finish();
 
         } else if (id == R.id.action_create) {
-            Toast.makeText(this, "OPEN CREATE", Toast.LENGTH_SHORT).show();
+            Log.d(logTag, "OPEN CREATE");
             Intent intent = new Intent(this, CreateEventActivity.class);
             startActivity(intent);
             finish();
