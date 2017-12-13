@@ -11,7 +11,6 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -24,17 +23,12 @@ import android.widget.Toast;
 
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
-import com.dom.communityapp.location.LocationUpdateCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.dom.communityapp.storage.FirebaseObserver;
-import com.dom.communityapp.location.LocationSettingAsker;
-import com.dom.communityapp.location.PermissionRequestCallback;
+import com.dom.communityapp.permisssion.LocationSettingAsker;
+import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.ui.InfoWindowAdapter;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -43,14 +37,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
 
 import static java.lang.Thread.sleep;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnMarkerClickListener, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener {
 
     private static final LatLng BRISBANE = new LatLng(10, 10);
     private static final float DEFAULT_ZOOM = 15;
@@ -160,9 +153,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         updateMap();
 
-        mMap.setOnPoiClickListener(this);
-        mMap.setOnMarkerClickListener(this);
-
         Marker mBrisbane = mMap.addMarker(new MarkerOptions()
                 .position(BRISBANE)
                 .title("Brisbane")
@@ -203,8 +193,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             mLocationAsker.askForPermission(new PermissionRequestCallback() {
                 @Override
                 public void onPermissionGranted() {
-                    updateLocationUI();
                     mFirstLocation = true;
+                    updateMap();
                 }
 
                 @Override
@@ -219,7 +209,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
 
             });
+            mFirstLocation = true;
         }
+
+
     }
 
     private void alertAndAsk() {
@@ -379,7 +372,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void locationIncoming(Location location) {
         mLastKnownLocation = location;
 
-        if (mFirstLocation) {
+        if (this.mFirstLocation) {
             centerView();
             mFirstLocation = false;
         }

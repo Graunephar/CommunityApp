@@ -1,4 +1,4 @@
-package com.dom.communityapp.location;
+package com.dom.communityapp.permisssion;
 
 /**
  * Created by daniel on 11/30/17.

@@ -5,35 +5,27 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.content.Intent;
-import android.provider.MediaStore;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
-import com.dom.communityapp.location.LocationSettingAsker;
-import com.dom.communityapp.location.LocationUpdateCallback;
-import com.dom.communityapp.location.PermissionRequestCallback;
+import com.dom.communityapp.permisssion.LocationSettingAsker;
+import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
+import com.dom.communityapp.permisssion.SettingAsker;
+import com.dom.communityapp.permisssion.StorageSettingAsker;
 import com.dom.communityapp.storage.FirebaseDatabaseStorage;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
@@ -72,14 +64,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     private static final int CAMERA_REQUEST_CODE = 11;
     private boolean mBound;
     private ServiceConnection mConnection;
-    private LocationSettingAsker mLocationAsker;
     private Location mLastKnownLocation;
     private LocationCommunityService mService;
     private BroadCastReceiveUitility mBroadCastRecieveUtility;
     private boolean mUnpushedLocationWaiting = false;
+    private SettingAsker mStoragePermissionAsker;
+    private SettingAsker mLocationAsker;
 
-    //private DrawerLayout mDrawerLayout;
-    //private ActionBarDrawerToggle mToggle;
 
 
     public CreateEventActivity() {
@@ -123,6 +114,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
 
         this.mLocationAsker = new LocationSettingAsker(this);
+        this.mStoragePermissionAsker = new StorageSettingAsker(this);
 
     }
 
@@ -130,15 +122,32 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     @OnClick(R.id.imageView_Event)
     public void takePicture() {
-        if (checkFilePermission()) {
+        if (this.mStoragePermissionAsker.havePermission()) {
 
-            EasyImage.openChooserWithGallery(this, getString(R.string.choose_image), 0);
+            fetchPicture();
 
         } else {
+            mStoragePermissionAsker.askForPermission(new PermissionRequestCallback(){
+                @Override
+                public void onPermissionGranted() {
+                    fetchPicture();
+                }
 
+                @Override
+                public void onPermissionRefused() {
+                        // We have no permission halt for now
+                }
+                @Override
+                public boolean expirable() {
+                    return true;
+                }
+            });
         }
     }
 
+    public void fetchPicture() {
+        EasyImage.openChooserWithGallery(this, getString(R.string.choose_image), 0);
+    }
 
     @Override
     protected void onStart() {
@@ -198,27 +207,6 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
 
     //Inspired by: https://stackoverflow.com/questions/45391290/ask-permission-for-write-external-storage
-    private boolean checkFilePermission() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED && checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.v("TAG", "Permission is granted");
-                return true;
-            } else {
-
-                Log.v("TAG", "Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-
-    //Inspired by: https://stackoverflow.com/questions/45391290/ask-permission-for-write-external-storage
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
@@ -227,29 +215,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
                 mService.getDeviceLocation(); //Not sure if this is redundant
             }
         }
-
-        switch (requestCode) {
-            case 0:
-                boolean isPerpermissionForAllGranted = false;
-                if (grantResults.length > 0 && permissions.length==grantResults.length) {
-                    for (int i = 0; i < permissions.length; i++){
-                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED){
-                            isPerpermissionForAllGranted=true;
-                        }else{
-                            isPerpermissionForAllGranted=false;
-                        }
-                    }
-
-                    Log.e("value", "Permission Granted, Now you can use local drive .");
-                } else {
-                    isPerpermissionForAllGranted=true;
-                    Log.e("value", "Permission Denied, You cannot use local drive .");
-                }
-                if(isPerpermissionForAllGranted){
-                    takePicture();
-                }
-                break;
-        }
+        mStoragePermissionAsker.onResult(requestCode, permissions, grantResults);
     }
 
     @OnClick(R.id.create_event_btn)

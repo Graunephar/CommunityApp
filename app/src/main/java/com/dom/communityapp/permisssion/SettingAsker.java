@@ -1,4 +1,4 @@
-package com.dom.communityapp.location;
+package com.dom.communityapp.permisssion;
 
 import android.support.annotation.Nullable;
 
@@ -15,4 +15,7 @@ public interface SettingAsker {
     boolean onResult(int requestCode, String[] permissions, int[] grantResults);
 
     boolean havePermission();
+
+    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
+    void askForPermission(PermissionRequestCallback callback);
 }

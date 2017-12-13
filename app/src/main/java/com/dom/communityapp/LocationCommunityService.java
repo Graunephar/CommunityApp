@@ -13,8 +13,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.dom.communityapp.location.BroadCastSendUtility;
-import com.dom.communityapp.location.LocationSettingAsker;
-import com.dom.communityapp.location.LocationUpdateCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;

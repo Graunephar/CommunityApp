@@ -1,4 +1,4 @@
-package com.dom.communityapp.location;
+package com.dom.communityapp.permisssion;
 
 import android.Manifest;
 import android.app.Activity;
@@ -26,7 +26,7 @@ import static com.dom.communityapp.location.LocationConstants.LOCATION_LOW;
  * Created by daniel on 11/30/17.
  */
 
-public class LocationSettingAsker implements SettingAsker{
+public class LocationSettingAsker implements SettingAsker {
 
     private static final int REQUEST_CHECK_SETTINGS = 42;
     private final Activity context;
@@ -111,6 +111,7 @@ public class LocationSettingAsker implements SettingAsker{
 
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
+    @Override
     public void askForPermission(final PermissionRequestCallback callback) {
 
 
