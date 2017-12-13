@@ -155,8 +155,29 @@ public class CommunityIssue implements Serializable{
         this.firebaseID = firebaseID;
     }
 
+
     @Exclude
     public int getIcon() {
-        return R.drawable.bubble_mask;
+
+        //final String category = getCategory();
+        int iconresult = 0;
+        switch (category) {
+            case "Cleaning":
+                iconresult = R.drawable.ic_cleaning_category;
+                break;
+            case "Work":
+                iconresult = R.drawable.ic_work_category;
+                break;
+            case "Local":
+                iconresult = R.drawable.ic_local_category;
+                break;
+            case "Trash":
+                iconresult = R.drawable.ic_trash_category;
+                break;
+            case "Road":
+                iconresult = R.drawable.ic_road_category;
+                break;
+        }
+        return iconresult;
     }
 }
