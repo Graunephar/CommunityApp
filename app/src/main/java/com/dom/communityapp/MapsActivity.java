@@ -50,7 +50,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
     private static final String KEY_MAP = "";
-    private final FirebaseDatabaseStorage mFirebaseStorage;
     private final BroadCastReceiveUitility mBroadCastRecieveUtility;
     private GoogleMap mMap;
     private Location mLastKnownLocation;
