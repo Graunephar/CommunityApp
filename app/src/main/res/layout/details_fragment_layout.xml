@@ -1,24 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dtFragment"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:layout_gravity="center"
     android:background="#FF0"
-    android:id="@+id/dtFragment">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello Fragment"
-        android:layout_margin="10dp"
-        android:textColor="@android:color/black"/>
+    tools:layout_editor_absoluteY="81dp">
 
     <ImageButton
         android:id="@+id/imageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/btn_dialog" />
 
 
-</android.support.v7.widget.LinearLayoutCompat>
+    <ImageView
+        android:id="@+id/details_fragment_imView"
+        android:layout_width="176dp"
+        android:layout_height="153dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Short description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_imView" />
+
+    <TextView
+        android:id="@+id/details_fragment_long_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="long description"
+        android:textColor="@android:color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:layout_constraintVertical_bias="0.098" />
+
+    <TextView
+        android:id="@+id/details_fragment_category_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="70dp"
+        android:layout_marginTop="32dp"
+        android:text="Categorys"
+        app:layout_constraintEnd_toEndOf="@+id/details_fragment_long_description"
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description" />
+
+    <TextView
+        android:id="@+id/details_fragment_time_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="32dp"
+        android:text="Time"
+        app:layout_constraintStart_toStartOf="@+id/details_fragment_long_description"
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description" />
+
+    <TextView
+        android:id="@+id/details_fragment_tags_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:padding="8dp"
+        android:text="Tags"
+        app:layout_constraintEnd_toEndOf="@+id/details_fragment_long_description"
+        app:layout_constraintStart_toStartOf="@+id/details_fragment_long_description"
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_category_txt" />
+
+
+</android.support.constraint.ConstraintLayout>
