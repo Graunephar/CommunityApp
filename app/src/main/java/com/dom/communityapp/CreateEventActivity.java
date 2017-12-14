@@ -97,6 +97,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         super.onCreate(savedInstanceState);
 
         ButterKnife.bind(this);
+
+        // Retrieve location and camera position from saved instance state.
+        if (savedInstanceState != null) {
+
+
+        }
+
         //Adapter for tag_spin
         ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.tags));
@@ -120,6 +127,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         this.mLocationAsker = new LocationSettingAsker(this);
         this.mStoragePermissionAsker = new StorageSettingAsker(this);
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -358,6 +372,12 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
 
             mStorage.saveIssueAndImageToDatabase(issue);
+
+            //start map after pushing create event
+            Intent intent = new Intent(this, MapsActivity.class);
+            startActivity(intent);
+            finish();
+
         }
 
     }

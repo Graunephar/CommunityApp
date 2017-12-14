@@ -105,6 +105,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         super.onCreate(savedInstanceState);
 
         ButterKnife.bind(this);
+
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
@@ -132,11 +133,22 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (mMap != null) {
+            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
+
+
+            super.onSaveInstanceState(outState);
+        }
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         bindToService();
         mBroadCastRecieveUtility.registerForBroadcasts();
     }
+
 
     @Override
     protected void onStop() {
@@ -156,15 +168,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (mMap != null) {
-            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
-            super.onSaveInstanceState(outState);
         }
     }
 
