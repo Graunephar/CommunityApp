@@ -12,6 +12,23 @@
         android:layout_height="match_parent"
         android:id="@+id/map_linear_layout">
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/map_container"
+            android:layout_margin="0dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/details_container"
+                android:layout_margin="20dp">
+
+            </FrameLayout>
+
+        </FrameLayout>
+
+
 
     </android.support.v7.widget.LinearLayoutCompat>
     <include

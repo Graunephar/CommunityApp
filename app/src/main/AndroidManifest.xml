@@ -58,7 +58,7 @@
             android:label="FETCH"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".DetailsActivity" />
+        <!--<activity android:name=".DetailsActivity" />-->
 
         <service
             android:name=".LocationCommunityService"

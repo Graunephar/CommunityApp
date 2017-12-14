@@ -2,6 +2,7 @@ package com.dom.communityapp;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -18,6 +19,8 @@ import android.support.design.widget.NavigationView;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -31,6 +34,7 @@ import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.storage.IssueLocationListener;
 import com.dom.communityapp.ui.InfoWindowAdapter;
 import com.dom.communityapp.ui.InfoWindowAdapterManager;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -44,6 +48,9 @@ import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 import static java.lang.Thread.sleep;
 
@@ -68,8 +75,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     //    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;
 
+
     private CommunityIssue lastIssue;
     private InfoWindowAdapterManager mAdapterManager;
+
+    FragmentManager Manager = getFragmentManager();
+    //ImageView detailsImage;
+
 
     public MapsActivity() {
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
@@ -92,19 +104,23 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        ButterKnife.bind(this);
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
         }
 
+
         this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
         mLocationAsker.askToChangeSettings(null); // Ask user to turn on location
 
+
+
         mMapFragment = MapFragment.newInstance();
-        FragmentTransaction fragmentTransaction =
-                getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.map_linear_layout, mMapFragment);
+
+        FragmentTransaction fragmentTransaction = Manager.beginTransaction();
+        fragmentTransaction.add(R.id.map_container, mMapFragment);
 
         fragmentTransaction.commit();
 
@@ -360,7 +376,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         }
     }
 
-
     private void startLocationListening(Location location) {
         mFirebaseStorage.addLocationListener(this);
         mFirebaseStorage.addLocationQuery(location, 2);
@@ -408,4 +423,22 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         mAdapterManager.changeMarker(issue, marker);
 
     }
+
+    public void showDetailsFragment(){
+        DetailsFragment detailsFragment = new DetailsFragment();
+        FragmentTransaction transaction = Manager.beginTransaction();
+        transaction.add(R.id.map_container,detailsFragment,"dtFragment");
+        transaction.commit();
+
+
+    }
+
+
+    public void removeDetailsFragment() {
+        DetailsFragment detailsFragment = (DetailsFragment) Manager.findFragmentByTag("dtFragment");
+        FragmentTransaction transaction = Manager.beginTransaction();
+        transaction.remove(detailsFragment);
+        transaction.commit();
+    }
+
 }

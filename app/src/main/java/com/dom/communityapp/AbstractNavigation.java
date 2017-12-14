@@ -101,15 +101,16 @@ public abstract class AbstractNavigation extends AppCompatActivity
 
         } else if (id == R.id.action_settings ) {
             Log.d(logTag, "OPEN DETAILS");
-            Intent intent = new Intent(this, DetailsActivity.class);
-            startActivity(intent);
-            finish();
 
         } else if (id == R.id.action_create) {
             Log.d(logTag, "OPEN CREATE");
             Intent intent = new Intent(this, CreateEventActivity.class);
             startActivity(intent);
             finish();
+        }
+        else if (id == R.id.action_details) {
+            Toast.makeText(this, "OPEN Details", Toast.LENGTH_SHORT).show();
+
         }
 
         // Null DO NOT DELETE YET
