@@ -175,6 +175,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         mAdapterManager = new InfoWindowAdapterManager(this);
         mMap.setInfoWindowAdapter(mAdapterManager);
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                mAdapterManager.clickedInfoWindow(marker);
+            }
+        });
 
         updateMap();
     }
@@ -405,7 +412,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private void addIcon(CommunityIssue issue) {
         Marker marker = createMarker(issue);
         this.mAdapterManager.addAdapter(marker, issue);
-
     }
 
     private Marker createMarker(CommunityIssue issue) {
@@ -424,21 +430,5 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
-    public void showDetailsFragment(){
-        DetailsFragment detailsFragment = new DetailsFragment();
-        FragmentTransaction transaction = Manager.beginTransaction();
-        transaction.add(R.id.map_container,detailsFragment,"dtFragment");
-        transaction.commit();
-
-
-    }
-
-
-    public void removeDetailsFragment() {
-        DetailsFragment detailsFragment = (DetailsFragment) Manager.findFragmentByTag("dtFragment");
-        FragmentTransaction transaction = Manager.beginTransaction();
-        transaction.remove(detailsFragment);
-        transaction.commit();
-    }
 
 }

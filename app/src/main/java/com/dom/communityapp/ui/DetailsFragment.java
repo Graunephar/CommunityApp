@@ -1,4 +1,4 @@
-package com.dom.communityapp;
+package com.dom.communityapp.ui;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -9,6 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.dom.communityapp.R;
+import com.dom.communityapp.ui.InfoWindowAdapter;
 
 import butterknife.ButterKnife;
 import butterknife.BindView;
@@ -22,6 +25,15 @@ import butterknife.OnClick;
 public class DetailsFragment extends Fragment{
 
     private ImageView detailsImage;
+
+    FragmentManager Manager = getFragmentManager();
+    private InfoWindowAdapter mInfoWindowAdapter;
+
+    public void addInfoWindowAdapter(InfoWindowAdapter adapter) {
+
+        this.mInfoWindowAdapter = adapter;
+
+    }
 
     @Nullable
     @Override
@@ -37,8 +49,7 @@ public class DetailsFragment extends Fragment{
         detailsImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MapsActivity mapsActivity = (MapsActivity)getActivity();
-                mapsActivity.removeDetailsFragment();
+                mInfoWindowAdapter.removeDetailsFragment();
             }
             });
 
@@ -46,14 +57,5 @@ public class DetailsFragment extends Fragment{
 
 
     }
-    FragmentManager Manager = getFragmentManager();
-
-
-  /* public void removeDetailsFragment() {
-        DetailsFragment detailsFragment = (DetailsFragment) Manager.findFragmentByTag("dtFragment");
-        FragmentTransaction transaction = Manager.beginTransaction();
-        transaction.remove(detailsFragment);
-        transaction.commit();
-    }*/
 
 }

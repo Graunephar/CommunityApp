@@ -49,17 +49,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
-        <!-- ALL THE CRAPPY ACTIVITIES... They should be removed at some point... FOr debuffing purposes now -->
-        <activity
-            android:name=".FetchIssueActivity"
-            android:exported="true"
-            android:label="FETCH"
-            android:theme="@style/AppTheme.NoActionBar" />
-
-        <!--<activity android:name=".DetailsActivity" />-->
-
         <service
             android:name=".LocationCommunityService"
             android:enabled="true"

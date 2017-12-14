@@ -1,7 +1,8 @@
 package com.dom.communityapp.ui;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.graphics.Bitmap;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,7 +19,7 @@ import com.google.android.gms.maps.model.Marker;
 
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
-    private Activity mContext;
+    private Activity mActivity;
     private final CommunityIssue mIssue;
     private View mView;
     private TextView markerLabel;
@@ -29,8 +30,8 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     public InfoWindowAdapter(Activity context, CommunityIssue issue) {
 
         this.mIssue = issue;
-        this.mContext = context;
-        this.mView = mContext.getLayoutInflater().inflate(R.layout.bubble_marker_layout, null);
+        this.mActivity = context;
+        this.mView = mActivity.getLayoutInflater().inflate(R.layout.bubble_marker_layout, null);
         iconView = (ImageView) mView.findViewById(R.id.marker_icon);
 
     }
@@ -69,6 +70,26 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     public CommunityIssue getIssue() {
         return mIssue;
     }
+
+    public void showDetailsFragment(){
+        FragmentManager manager = mActivity.getFragmentManager();
+        DetailsFragment detailsFragment = new DetailsFragment();
+        detailsFragment.addInfoWindowAdapter(this);
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.map_container,detailsFragment,"dtFragment");
+        transaction.commit();
+    }
+
+
+    public void removeDetailsFragment() {
+        FragmentManager manager = mActivity.getFragmentManager();
+
+        DetailsFragment detailsFragment = (DetailsFragment) manager.findFragmentByTag("dtFragment");
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.remove(detailsFragment);
+        transaction.commit();
+    }
+
 
     @Override
     public boolean equals(Object obj) {

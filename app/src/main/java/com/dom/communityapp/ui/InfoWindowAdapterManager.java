@@ -64,4 +64,9 @@ public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter {
 
         oldmarker.remove();
     }
+
+    public void clickedInfoWindow(Marker marker) {
+        InfoWindowAdapter clickedadapter = mAdapters.get(marker);
+        clickedadapter.showDetailsFragment();
+    }
 }
