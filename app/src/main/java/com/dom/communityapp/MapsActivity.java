@@ -279,24 +279,33 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     public void onNewIssue(CommunityIssue issue) {
 
-        lastIssue = issue;
     }
 
     @Override
     public void imageDownloaded(CommunityIssue incomingissue) {
 
-        if (mIssues.containsKey(incomingissue.getFirebaseID())) {
-            CommunityIssue newissue = mIssues.get(incomingissue.getFirebaseID());
 
-
-            Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
+        /*
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             byte[] byteArray = stream.toByteArray();
             Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
             Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-            newissue.getIssueImage().setBitmap(croppedbitmap);
+
+         */
+
+        CommunityIssue newissue = null;
+
+        if (mIssues.containsKey(incomingissue.getFirebaseID())) {
+            newissue = mIssues.get(incomingissue.getFirebaseID());
+;
+        } else {
+            newissue = incomingissue;
+            newIssue(incomingissue);
         }
+
+        Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
+        newissue.getIssueImage().setBitmap(issuebitmap);
     }
 
 
