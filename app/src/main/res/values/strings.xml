@@ -6,9 +6,9 @@
     <string name="create_event_Btn">CREATE EVENT</string>
 
     <string-array name="tags">
-        <item>Cleaning</item>
-        <item>Snow</item>
-        <item>Work</item>
+        <item>One man job</item>
+        <item>Coop event</item>
+        <item>Professional service</item>
     </string-array>
     <string-array name="categories">
         <item>Local</item>
@@ -18,9 +18,9 @@
         <item>Road</item>
     </string-array>
     <string-array name="Time_duration">
-        <item>Efternoon</item>
+        <item>>An hour</item>
+        <item>Afternoon</item>
         <item>Weekend</item>
-        <item>An hour</item>
         <item>Short project</item>
         <item>Long spanning project</item>
     </string-array>

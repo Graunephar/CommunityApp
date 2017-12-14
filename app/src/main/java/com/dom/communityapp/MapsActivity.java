@@ -58,8 +58,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
 
     private static final float DEFAULT_ZOOM = 15;
-    //  private static final String TAG = MapsActivity.class.getSimpleName();
+    private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
+    private static final String KEY_MAP = "";
     private final FirebaseDatabaseStorage mFirebaseStorage;
     private final BroadCastReceiveUitility mBroadCastRecieveUtility;
     private GoogleMap mMap;
@@ -72,7 +73,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private HashMap<String, CommunityIssue> mIssues;
 
     private LocationSettingAsker mLocationAsker;
-    //    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
+    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;
 
 
@@ -91,16 +92,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     @Override
-    protected DrawerLayout getdrawerLayout() {
-        return (DrawerLayout) findViewById(R.id.map_layout);
-    }
-
-    @Override
-    protected int getLayoutid() {
-        return R.layout.activity_maps;
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -110,12 +101,19 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
 
+
+            /*
+             mCurrentCity = (CityWeatherData) savedInstanceState.getSerializable(CURRENT_CITY_KEY);
+            mCityID = savedInstanceState.getInt(EXTRA_CITY_ID);
+            mCityName = savedInstanceState.getString(EXTRA_CITY_NAME);
+            updateUIWithCity(mCurrentCity);
+             */
+
         }
 
 
         this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
         mLocationAsker.askToChangeSettings(null); // Ask user to turn on location
-
 
 
         mMapFragment = MapFragment.newInstance();
@@ -131,15 +129,31 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (mMap != null) {
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
 
+            /*
+            unbindFromService();
+            outState.putSerializable(CURRENT_CITY_KEY, mCurrentCity);
+            outState.putSerializable(EXTRA_CITY_NAME, mCityName);
+            outState.putSerializable(EXTRA_CITY_ID, mCityID);
+             */
 
             super.onSaveInstanceState(outState);
         }
+    }
+
+
+    @Override
+    protected DrawerLayout getdrawerLayout() {
+        return (DrawerLayout) findViewById(R.id.map_layout);
+    }
+
+    @Override
+    protected int getLayoutid() {
+        return R.layout.activity_maps;
     }
 
     @Override
@@ -408,7 +422,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     @Override
     public void movedIssue(CommunityIssue issue) {
-        moveIcon(issue  );
+        moveIcon(issue);
 
     }
 

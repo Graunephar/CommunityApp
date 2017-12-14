@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.content.Intent;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
@@ -45,7 +46,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     //Local variable
 
-    // Bitmap myImage;
+    Bitmap myImage;
     @BindView(R.id.imageView_Event)
     ImageView viewer;
     @BindView(R.id.Edittext_Short_despription)
@@ -80,16 +81,6 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     public CreateEventActivity() {
         this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
-    }
-
-    @Override
-    protected DrawerLayout getdrawerLayout() {
-        return (DrawerLayout) findViewById(R.id.createeventactivity);
-    }
-
-    @Override
-    protected int getLayoutid() {
-        return R.layout.activity_create_event;
     }
 
     @Override
@@ -134,6 +125,16 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
 
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected DrawerLayout getdrawerLayout() {
+        return (DrawerLayout) findViewById(R.id.createeventactivity);
+    }
+
+    @Override
+    protected int getLayoutid() {
+        return R.layout.activity_create_event;
     }
 
     /**
@@ -359,8 +360,8 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         } else {
             String sshort = short_description.getText().toString();
             String llong = long_description.getText().toString();
-            String cat_text = cat_spin.getSelectedItem().toString();
             String tag_text = tag_spin.getSelectedItem().toString();
+            String cat_text = cat_spin.getSelectedItem().toString();
             String time_text = time_spin.getSelectedItem().toString();
 
             IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
@@ -371,12 +372,15 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
             CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
 
-            mStorage.saveIssueAndImageToDatabase(issue);
+            if (!(mTakenImage == null)){
+                mStorage.saveIssueAndImageToDatabase(issue);
 
-            //start map after pushing create event
-            Intent intent = new Intent(this, MapsActivity.class);
-            startActivity(intent);
-            finish();
+                //start map after pushing create event
+                Intent intent = new Intent(this, MapsActivity.class);
+                startActivity(intent);
+                finish();
+            } else Toast.makeText(this, "Select a photo, please.", Toast.LENGTH_SHORT).show();
+
 
         }
 
