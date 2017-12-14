@@ -27,6 +27,8 @@ public class BroadCastSendUtility {
     //Sending local broadcasts
     public void broadCastLocation(Location location) {
 
+        if(location == null) return;
+
         //Creating broadcast intent
         Intent intent = new Intent();
         intent.setAction(BROADCAST_BACKGROUND_SERVICE_RESULT);

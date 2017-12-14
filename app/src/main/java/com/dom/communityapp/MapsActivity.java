@@ -13,28 +13,21 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.Toast;
-
-
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.models.CommunityIssue;
-import com.dom.communityapp.storage.FirebaseDatabaseStorage;
-import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
+import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
+import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.storage.IssueLocationListener;
-import com.dom.communityapp.ui.InfoWindowAdapter;
 import com.dom.communityapp.ui.InfoWindowAdapterManager;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -43,20 +36,16 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.ui.BubbleIconFactory;
-import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-
-import static java.lang.Thread.sleep;
 
 public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener, IssueLocationListener {
 
 
+    //Map related stuff
     private static final float DEFAULT_ZOOM = 15;
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
@@ -66,14 +55,21 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private GoogleMap mMap;
     private Location mLastKnownLocation;
     private MapFragment mMapFragment;
-    private IconGenerator mIconFactory;
-    private LocationCommunityService mService;
-    private boolean mBound;
-    private ServiceConnection mConnection;
     private HashMap<String, CommunityIssue> mIssues;
 
+    /* Services */
+    //Storage service
+    private FirebaseDatabaseStorageService mFirebaseStorageService;
+    private boolean mStorageServiceBound = false;
+    private ServiceConnection mStorageServiceConnection;
+
+    //Location service
+    private LocationCommunityService mLocationService;
+    private boolean mLocationServiceBound;
+    private ServiceConnection mLocationServiceConnection;
+
+
     private LocationSettingAsker mLocationAsker;
-    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;
 
 
@@ -85,8 +81,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
 
     public MapsActivity() {
-        this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
-        this.mFirebaseStorage.addObserver(this);
         this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
         mIssues = new HashMap<>();
     }
@@ -100,14 +94,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-
-
-            /*
-             mCurrentCity = (CityWeatherData) savedInstanceState.getSerializable(CURRENT_CITY_KEY);
-            mCityID = savedInstanceState.getInt(EXTRA_CITY_ID);
-            mCityName = savedInstanceState.getString(EXTRA_CITY_NAME);
-            updateUIWithCity(mCurrentCity);
-             */
 
         }
 
@@ -124,8 +110,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         fragmentTransaction.commit();
 
         mMapFragment.getMapAsync(this);
-
-        this.mIconFactory = new IconGenerator(this); // Start a factory for custom icons
 
     }
 
@@ -159,7 +143,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     protected void onStart() {
         super.onStart();
-        bindToService();
+        bindToLocationService();
+        bindToStorageService();
         mBroadCastRecieveUtility.registerForBroadcasts();
     }
 
@@ -167,9 +152,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     protected void onStop() {
         super.onStop();
-        unbindFromService();
+        unbindFromLocationService();
+        unbindFromStorageService();
     }
-
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     private void updateLocationUI() {
@@ -208,8 +193,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         if (mLocationAsker.havePermission()) {
 
-            if (mBound) {
-                mService.getDeviceLocation();
+            if (mLocationServiceBound) {
+                mLocationService.getDeviceLocation();
             }
 
             updateLocationUI();
@@ -291,7 +276,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
 
     /**
-     * Storage stuff
+     * Firebase service callbacks - and storage stuff
      **/
 
     @Override
@@ -307,102 +292,35 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     public void onNewIssue(CommunityIssue issue) {
 
-        lastIssue = issue;
     }
 
     @Override
     public void imageDownloaded(CommunityIssue incomingissue) {
 
+
+        CommunityIssue newissue = null;
+
         if (mIssues.containsKey(incomingissue.getFirebaseID())) {
-            CommunityIssue newissue = mIssues.get(incomingissue.getFirebaseID());
-
-
-            Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-            newissue.getIssueImage().setBitmap(croppedbitmap);
+            newissue = mIssues.get(incomingissue.getFirebaseID());
+;
+        } else {
+            newissue = incomingissue;
+            newIssue(incomingissue);
         }
+
+        Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
+        newissue.getIssueImage().setBitmap(issuebitmap);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
     }
 
-    /**
-     * Service stuff
-     **/
-
-    private void bindToService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        if (!mBound) {
-            this.mConnection = createNewServiceConnection();
-            final boolean b = bindService(new Intent(this,
-                    LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-
-    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (mLocationAsker.onResult(requestCode, permissions, grantResults)) {
-            updateLocationUI();
-        }
-    }
-
-    void unbindFromService() {
-        if (mBound) {
-            // Detach our existing connection.
-            unbindService(mConnection);
-            mBound = false;
-        }
-    }
-
-    private ServiceConnection createNewServiceConnection() {
-
-        return new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className,
-                                           IBinder service) {
-                // We've bound to LocalService, cast the IBinder and get LocalService instance
-                mService = ((LocationCommunityService.LocalBinder) service).getService();
-
-                mBound = true;
-
-                mFirstLocation = true;
-                if (mLocationAsker.havePermission()) mService.getDeviceLocation();
-
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName arg0) {
-                mBound = false;
-                mService = null;
-            }
-
-            @Override
-            public void onBindingDied(ComponentName name) {
-                mBound = false;
-            }
-        };
-    }
-
-    @Override
-    public void locationIncoming(Location location) {
-        mLastKnownLocation = location;
-
-        if (this.mFirstLocation) {
-            centerView();
-            startLocationListening(location);
-            mFirstLocation = false;
-        }
-    }
 
     private void startLocationListening(Location location) {
-        mFirebaseStorage.addLocationListener(this);
-        mFirebaseStorage.addLocationQuery(location, 2);
+        mFirebaseStorageService.addLocationListener(this);
+        mFirebaseStorageService.addLocationQuery(location, 2);
 
     }
 
@@ -410,8 +328,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void issueRemoved(CommunityIssue issue) {
         mIssues.remove(issue.getFirebaseID());
         mAdapterManager.removeAdapterByIssue(issue);
-
-
     }
 
     @Override
@@ -423,13 +339,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     public void movedIssue(CommunityIssue issue) {
         moveIcon(issue);
-
     }
 
-    private void addIcon(CommunityIssue issue) {
-        Marker marker = createMarker(issue);
-        this.mAdapterManager.addAdapter(marker, issue);
-    }
 
     private Marker createMarker(CommunityIssue issue) {
         MarkerOptions markerOptions = new MarkerOptions().
@@ -444,7 +355,150 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private void moveIcon(CommunityIssue issue) {
         Marker marker = createMarker(issue);
         mAdapterManager.changeMarker(issue, marker);
+    }
 
+    /**
+     * Firebase Service stuff
+     */
+
+    private void bindToStorageService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (!mStorageServiceBound) {
+            this.mStorageServiceConnection = createNewStorageServiceConnection();
+            bindService(new Intent(this,
+                    FirebaseDatabaseStorageService.class), mStorageServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+
+    void unbindFromStorageService() {
+        if (mStorageServiceBound) {
+            // Detach our existing connection.
+            unbindService(mStorageServiceConnection);
+            mStorageServiceBound = false;
+        }
+    }
+
+    private ServiceConnection createNewStorageServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mFirebaseStorageService = ((FirebaseDatabaseStorageService.LocalBinder) service).getService();
+
+                mStorageServiceBound = true;
+
+                addListenersAndObservers();
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mStorageServiceBound = false;
+                mFirebaseStorageService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mStorageServiceBound = false;
+            }
+        };
+    }
+
+    private void addListenersAndObservers() {
+        mFirebaseStorageService.addObserver(this);
+        if(mLastKnownLocation != null) {
+            startLocationListening(mLastKnownLocation);
+        }
+    }
+
+    private void removeListenersAndObservers() {
+        mFirebaseStorageService.removeObserver(this);
+    }
+
+
+    /**
+     * Location Service stuff
+     **/
+
+    private void bindToLocationService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (!mLocationServiceBound) {
+            this.mLocationServiceConnection = createNewLocationServiceConnection();
+            final boolean b = bindService(new Intent(this,
+                    LocationCommunityService.class), mLocationServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    void unbindFromLocationService() {
+        if (mLocationServiceBound) {
+            // Detach our existing connection.
+            unbindService(mLocationServiceConnection);
+            mLocationServiceBound = false;
+        }
+    }
+
+    //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (mLocationAsker.onResult(requestCode, permissions, grantResults)) {
+            updateLocationUI();
+        }
+    }
+
+    private void addIcon(CommunityIssue issue) {
+        Marker marker = createMarker(issue);
+        this.mAdapterManager.addAdapter(marker, issue);
+    }
+
+    private ServiceConnection createNewLocationServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mLocationService = ((LocationCommunityService.LocalBinder) service).getService();
+
+                mLocationServiceBound = true;
+
+                mFirstLocation = true;
+                if (mLocationAsker.havePermission()) mLocationService.getDeviceLocation();
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mLocationServiceBound = false;
+                mLocationService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mLocationServiceBound = false;
+            }
+        };
+    }
+
+    @Override
+    public void locationIncoming(Location location) {
+        mLastKnownLocation = location;
+
+        if (this.mFirstLocation) {
+            centerView();
+            if(mStorageServiceBound) {
+                startLocationListening(location);
+            }
+            mFirstLocation = false;
+        }
     }
 
 

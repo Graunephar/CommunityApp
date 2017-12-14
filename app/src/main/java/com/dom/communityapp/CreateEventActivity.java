@@ -27,7 +27,8 @@ import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.permisssion.SettingAsker;
 import com.dom.communityapp.permisssion.StorageSettingAsker;
-import com.dom.communityapp.storage.FirebaseDatabaseStorage;
+import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
+import com.dom.communityapp.storage.FirebaseImageUploadObserver;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -41,13 +42,12 @@ import pl.aprilapps.easyphotopicker.DefaultCallback;
 import pl.aprilapps.easyphotopicker.EasyImage;
 import pl.tajchert.nammu.PermissionCallback;
 
-
-public class CreateEventActivity extends AbstractNavigation implements LocationListener {
+public class CreateEventActivity extends AbstractNavigation implements LocationListener, FirebaseImageUploadObserver {
     private static final String IMAGE = "";
 
     //Local variable
 
-    Bitmap myImage;
+    // Bitmap myImage;
     @BindView(R.id.imageView_Event)
     ImageView viewer;
     @BindView(R.id.Edittext_Short_despription)
@@ -66,15 +66,19 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private Uri mImageFilePath;
     private Bitmap mTakenImage;
-    private FirebaseDatabaseStorage mStorage = new FirebaseDatabaseStorage(this);
+
+    private FirebaseDatabaseStorageService mStorageService;
+    private boolean mStorageServiceBound;
+    private ServiceConnection mStorageServiceConnection;
+
+    private ServiceConnection mLocationServiceConnection;
+    private boolean mLocationServiceBound;
+    private LocationCommunityService mLocationService;
 
     //Request codes
     // private static final int CAMERA_REQUEST_CODE = 11;
-    private boolean mBound;
     private boolean mUnpushedLocationWaiting = false;
-    private ServiceConnection mConnection;
     private Location mLastKnownLocation;
-    private LocationCommunityService mService;
     private BroadCastReceiveUitility mBroadCastRecieveUtility;
     private SettingAsker mStoragePermissionAsker;
     private SettingAsker mLocationAsker;
@@ -176,14 +180,16 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     @Override
     protected void onStart() {
         super.onStart();
-        bindToService();
+        bindToLocationService();
+        bindToStorageService();
         mBroadCastRecieveUtility.registerForBroadcasts();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        unbindFromService();
+        unbindFromStorageService();
+        unbindFromLocationService();
     }
 
     @Override
@@ -234,8 +240,8 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
         if (mLocationAsker.onResult(requestCode, permissions, grantResults)) {
-            if (mBound) {
-                mService.getDeviceLocation(); //Not sure if this is redundant
+            if (mLocationServiceBound) {
+                mLocationService.getDeviceLocation(); //Not sure if this is redundant
             }
         }
         mStoragePermissionAsker.onResult(requestCode, permissions, grantResults);
@@ -250,7 +256,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             public void permissionGranted() {
                 if (mLastKnownLocation != null) {
                     transmitIssue();
-                } else if (mBound) {
+                } else if (mLocationServiceBound) {
                     giveMeLocation();
                 } else {
                     tellUserNoLOcation();
@@ -300,7 +306,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             transmitIssue();
         } else {
             this.mUnpushedLocationWaiting = true;
-            mService.getDeviceLocation();
+            mLocationService.getDeviceLocation();
         }
 
     }
@@ -355,15 +361,135 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     }
 
+    /*Location service stuff*/
+
+    private void bindToLocationService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (!mLocationServiceBound) {
+            this.mLocationServiceConnection = createNewLocationServiceConnection();
+            bindService(new Intent(this,
+                    LocationCommunityService.class), mLocationServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    void unbindFromLocationService() {
+        if (mLocationServiceBound) {
+            // Detach our existing connection.
+            unbindService(mLocationServiceConnection);
+            mLocationServiceBound = false;
+        }
+    }
+
+    private ServiceConnection createNewLocationServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mLocationService = ((LocationCommunityService.LocalBinder) service).getService();
+
+                mLocationServiceBound = true;
+
+                if (mLocationAsker.havePermission()) {
+                    mLocationService.getDeviceLocation();
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mLocationServiceBound = false;
+                mLocationService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mLocationServiceBound = false;
+            }
+        };
+    }
+
+    @Override
+    public void locationIncoming(Location location) {
+        if (location != null) this.mLastKnownLocation = location;
+        if (mUnpushedLocationWaiting) { // we have an issue waiting to be pushed
+            fetchLocationAndPush();
+            mUnpushedLocationWaiting = false;
+        }
+    }
+
+    /* Firebase Service stuff */
+
+    private void bindToStorageService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        if (!mStorageServiceBound) {
+            this.mStorageServiceConnection = createNewStorageServiceConnection();
+            bindService(new Intent(this,
+                    FirebaseDatabaseStorageService.class), mStorageServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+
+    void unbindFromStorageService() {
+        if (mStorageServiceBound) {
+            // Detach our existing connection.
+            unbindService(mStorageServiceConnection);
+            mStorageServiceBound = false;
+        }
+    }
+
+    private ServiceConnection createNewStorageServiceConnection() {
+
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                mStorageService = ((FirebaseDatabaseStorageService.LocalBinder) service).getService();
+
+                mStorageServiceBound = true;
+
+                //TODO Shold we do something when service is bound? EMpty que??
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mStorageServiceBound = false;
+                mStorageService = null;
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                mStorageServiceBound = false;
+            }
+        };
+    }
+
+
     private void transmitIssue() {
 
         if (mLastKnownLocation == null) {
             createEvent(); // Stuff not working call back
+
         } else {
+            tryToUploadIssue();
+        }
+    }
+
+    private void tryToUploadIssue() {
+        if (mStorageServiceBound) {
+
             String sshort = short_description.getText().toString();
             String llong = long_description.getText().toString();
-            String tag_text = tag_spin.getSelectedItem().toString();
             String cat_text = cat_spin.getSelectedItem().toString();
+            String tag_text = tag_spin.getSelectedItem().toString();
             String time_text = time_spin.getSelectedItem().toString();
 
             IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
@@ -375,7 +501,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
 
             if (!(mTakenImage == null)){
-                mStorage.saveIssueAndImageToDatabase(issue);
+                mStorageService.saveIssueAndImageToDatabase(issue, this);
 
                 //start map after pushing create event
                 Intent intent = new Intent(this, MapsActivity.class);
@@ -384,75 +510,14 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             } else Toast.makeText(this, "Select a photo, please.", Toast.LENGTH_SHORT).show();
 
 
+        } else {
+            //TODO Maybe push to quere??
         }
-
-    }
-
-
-    /**
-     * Service stuff
-     **/
-
-    private void bindToService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        if (!mBound) {
-            this.mConnection = createNewServiceConnection();
-            bindService(new Intent(this,
-                    LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-    private void askforLocation() {
-
-    }
-
-    void unbindFromService() {
-        if (mBound) {
-            // Detach our existing connection.
-            unbindService(mConnection);
-            mBound = false;
-        }
-    }
-
-    private ServiceConnection createNewServiceConnection() {
-
-        return new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className,
-                                           IBinder service) {
-                // We've bound to LocalService, cast the IBinder and get LocalService instance
-                mService = ((LocationCommunityService.LocalBinder) service).getService();
-
-                mBound = true;
-
-                if (mLocationAsker.havePermission()) {
-                    mService.getDeviceLocation();
-                }
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName arg0) {
-                mBound = false;
-                mService = null;
-            }
-
-            @Override
-            public void onBindingDied(ComponentName name) {
-                mBound = false;
-            }
-        };
     }
 
 
     @Override
-    public void locationIncoming(Location location) {
-        if (location != null) this.mLastKnownLocation = location;
-        if (mUnpushedLocationWaiting) { // we have an issue waiting to be pushed
-            fetchLocationAndPush();
-            mUnpushedLocationWaiting = false;
-        }
+    public void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCopressionException e) {
+        Toast.makeText(getApplicationContext(), R.string.image_compression_error, Toast.LENGTH_SHORT).show();
     }
 }

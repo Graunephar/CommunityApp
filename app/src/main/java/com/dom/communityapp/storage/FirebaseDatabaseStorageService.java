@@ -1,12 +1,17 @@
 package com.dom.communityapp.storage;
 
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Binder;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
@@ -32,39 +37,45 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import id.zelory.compressor.Compressor;
 
 
 /**
  * Created by mrl on 07/12/2017.
  */
 
-public class FirebaseDatabaseStorage {
+public class FirebaseDatabaseStorageService extends Service {
 
     private List<IssueLocationListener> mLocationListeners;
-    private static final String IMG_LOCATION = "images/";
+    private ArrayList<FirebaseObserver> observers;
 
     private final long FIVE_MEGABYTES = 1024 * 1024 * 5;
-    //private final BitmapFactory mBitmapFactory;
 
     //STORAGE:
-    private Context mContext;
     private UploadTask uploadTask;
-    private StorageReference mFirebaseStorageReference;
-    private ArrayList<FirebaseObserver> observers;
 
     //DATABASE:
     //ref pointing to root
     private DatabaseReference mFirebaseRootReference;
 
     private DatabaseReference mFirebaseIssueReference;
+    private StorageReference mFirebaseStorageReference;
+    private static final String IMG_LOCATION = "images/";
     private GeoFire mGeoFire;
     private FirebaseAuth mFirebaseAuth;
 
+    /* Service */
+    private IBinder mBinder;
+    private String logTag = "LOCATION_SERVICE";
 
-    public FirebaseDatabaseStorage(Context uploadActivity) {
-        this.mContext = uploadActivity;
+
+    public FirebaseDatabaseStorageService() {
         mFirebaseAuth = FirebaseAuth.getInstance();
         this.mFirebaseRootReference = FirebaseDatabase.getInstance().getReference();
         this.mFirebaseStorageReference = FirebaseStorage.getInstance().getReference();
@@ -75,6 +86,9 @@ public class FirebaseDatabaseStorage {
         this.observers = new ArrayList<>();
         attachListeners();
         this.mLocationListeners = new ArrayList<>();
+
+        this.mBinder = new LocalBinder();
+
     }
 
     private void attachListeners() {
@@ -143,33 +157,34 @@ public class FirebaseDatabaseStorage {
         mLocationListeners.remove(listener);
     }
 
-    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void saveToDatabase(CommunityIssue data) {
-        mFirebaseIssueReference.push().setValue(data);  //creates a unique id in database
-    }
 
-
-    public void saveIssueAndImageToDatabase(final CommunityIssue issue) {
+    public void saveIssueAndImageToDatabase(final CommunityIssue issue, final FirebaseImageUploadObserver observer) {
         final IssueImage issueImage = issue.getIssueImage();
 
         checkFirebaseSignInAndDoStuff(Uri.parse(issueImage.getLocalFilePath()), new FirebaseConsumer<Uri>() {
             @Override
             public void accept(Uri subject) {
 
-                uploadFileAndAddIssue(subject, issueImage, issue);
+                try {
+                    uploadFileAndAddIssue(subject, issueImage, issue);
+                } catch (FirebaseImageCopressionException e) {
+                    CompressionErrorDetected(observer, e);
+                }
 
             }
         });
-
     }
 
-    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) {
+    private void CompressionErrorDetected(FirebaseImageUploadObserver observer, FirebaseImageCopressionException e) {
+        observer.onImageErrorDetected(e);
+    }
+
+    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) throws FirebaseImageCopressionException {
         uploadFileLocal(filepath, new FirebaseFileUploadCallback() { // first we push the issueImage
             @Override
             public void onUploadSuccess(Uri donwloaduri) { // When imaged is in storage we can save the issue
                 issueImage.setImage_URL(String.valueOf(donwloaduri)); //Save reference to url in issueImage
                 saveIssueToDatabase(issue); //Now push the issue
-
             }
         });
 
@@ -231,8 +246,12 @@ public class FirebaseDatabaseStorage {
     }
 
     //Made to upload files in background without updating a gui at the same time...
-    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) {
+    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) throws FirebaseImageCopressionException {
         StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
+
+
+        filepath = compressImage(filepath);
+
         uploadTask = imageRef.putFile(filepath);
 
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -252,66 +271,19 @@ public class FirebaseDatabaseStorage {
 
     }
 
-    public void uploadFile(final Uri filepath) {
+    private Uri compressImage(Uri filepath) throws FirebaseImageCopressionException {
 
-        checkFirebaseSignInAndDoStuff(filepath, new FirebaseConsumer<Uri>() {
-            @Override
-            public void accept(Uri subject) {
-                uploadFileFromActivity(filepath);
-            }
-        });
+        File imagefile = new File(filepath.getPath());
+        File compressedImageFile = null;
 
-    }
-
-    private void uploadFileFromActivity(Uri filepath) {
-        //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
-        //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
-        if (filepath != null) {
-
-            final ProgressDialog progressDialog = new ProgressDialog(mContext);
-            progressDialog.setMax(100);
-            progressDialog.setMessage("Uploading...");
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.show();
-            progressDialog.setCancelable(false);
-
-            StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
-
-            uploadTask = imageRef.putFile(filepath);
-
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-                    for (FirebaseObserver observer : observers) { //Notify all observers about upload
-                        observer.getImage(downloadUrl);
-                    }
-
-                    progressDialog.dismiss();
-                }
-            });
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    progressDialog.dismiss();
-                    Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
-
-            uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                    progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
-                }
-            });
+        try {
+            compressedImageFile = new Compressor(this).compressToFile(imagefile);
+        } catch (IOException e) {
+            throw new FirebaseImageCopressionException("ERRRRRRROOOORR BADNESS 1000000");
         }
-        //if there is no file
-        else {
 
-        }
+        return Uri.fromFile(compressedImageFile);
+
     }
 
     public void addLocationQuery(Location location, double radius) {
@@ -375,7 +347,6 @@ public class FirebaseDatabaseStorage {
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) { // At instansation gives all data, changes are receiced herafter
-
                 CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
                 issue.setFirebaseID(dataSnapshot.getKey());
                 issue.setCoordinate(location);
@@ -410,6 +381,40 @@ public class FirebaseDatabaseStorage {
 
         private AuthException(String message) {
             this.message = message;
+        }
+    }
+
+    public class FirebaseImageCopressionException extends IOException {
+        private final String message;
+
+        private FirebaseImageCopressionException(String message) {
+            this.message = message;
+        }
+    }
+
+
+
+
+    /* Service related stuff */
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(logTag, "Location service destroyed");
+        //mPreferenceUtility.saveToSharedPreferences(mCityNameList);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(logTag, "Service bound.");
+        return mBinder;
+    }
+
+
+    public class LocalBinder extends Binder {
+        public FirebaseDatabaseStorageService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return FirebaseDatabaseStorageService.this;
         }
     }
 
