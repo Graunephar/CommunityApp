@@ -108,10 +108,7 @@ public abstract class AbstractNavigation extends AppCompatActivity
             startActivity(intent);
             finish();
         }
-        else if (id == R.id.action_details) {
-            Toast.makeText(this, "OPEN Details", Toast.LENGTH_SHORT).show();
 
-        }
 
         // Null DO NOT DELETE YET
 
