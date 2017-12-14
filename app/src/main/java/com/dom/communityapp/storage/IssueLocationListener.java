@@ -8,7 +8,9 @@ import com.dom.communityapp.models.CommunityIssue;
 
 public interface IssueLocationListener {
     void issueRemoved(CommunityIssue issue);
+
     void newIssue(CommunityIssue issue);
+
     void movedIssue(CommunityIssue issue);
 
 }

@@ -48,9 +48,9 @@ import static java.lang.Thread.sleep;
 
 public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener, IssueLocationListener {
 
-    private static final LatLng BRISBANE = new LatLng(10, 10);
+
     private static final float DEFAULT_ZOOM = 15;
-    private static final String TAG = MapsActivity.class.getSimpleName();
+    //  private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
     private final FirebaseDatabaseStorage mFirebaseStorage;
     private final BroadCastReceiveUitility mBroadCastRecieveUtility;
@@ -61,9 +61,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private LocationCommunityService mService;
     private boolean mBound;
     private ServiceConnection mConnection;
-    private Bitmap mBitmap;
+
     private LocationSettingAsker mLocationAsker;
-    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
+    //    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
     private boolean mFirstLocation = true;
 
     private CommunityIssue lastIssue;
@@ -88,7 +88,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(getLayoutid());
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -133,8 +132,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             return;
         }
         try {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
@@ -282,7 +281,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void imageDownloaded(CommunityIssue issue) {
 
 
-        if (lastIssue.getFirebaseID() == issue.getFirebaseID()) {
+        if (lastIssue.getFirebaseID().equals(issue.getFirebaseID())) {
             Bitmap issuebitmap = issue.issueImage.getBitmap();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
@@ -303,7 +302,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
-        if (mBound == false) {
+        if (!mBound) {
             this.mConnection = createNewServiceConnection();
             final boolean b = bindService(new Intent(this,
                     LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
@@ -354,8 +353,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             }
         };
     }
-
-
 
 
     @Override

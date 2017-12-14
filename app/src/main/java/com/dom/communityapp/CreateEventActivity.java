@@ -45,15 +45,21 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     //Local variable
 
-    Bitmap myImage;
-    @BindView(R.id.imageView_Event) ImageView viewer;
-    @BindView(R.id.Edittext_Short_despription) EditText short_description;
-    @BindView(R.id.Edittext_Long_despription) EditText long_description;
-    @BindView(R.id.spinner_tags) Spinner tag_spin;
-    @BindView(R.id.spinner_categories) Spinner cat_spin;
-    @BindView(R.id.spinner_time_required) Spinner time_spin;
-    @BindView(R.id.mapView_create_event) MapView map_show;
-
+    // Bitmap myImage;
+    @BindView(R.id.imageView_Event)
+    ImageView viewer;
+    @BindView(R.id.Edittext_Short_despription)
+    EditText short_description;
+    @BindView(R.id.Edittext_Long_despription)
+    EditText long_description;
+    @BindView(R.id.spinner_tags)
+    Spinner tag_spin;
+    @BindView(R.id.spinner_categories)
+    Spinner cat_spin;
+    @BindView(R.id.spinner_time_required)
+    Spinner time_spin;
+    @BindView(R.id.mapView_create_event)
+    MapView map_show;
 
 
     private Uri mImageFilePath;
@@ -61,16 +67,15 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     private FirebaseDatabaseStorage mStorage = new FirebaseDatabaseStorage(this);
 
     //Request codes
-    private static final int CAMERA_REQUEST_CODE = 11;
+    // private static final int CAMERA_REQUEST_CODE = 11;
     private boolean mBound;
+    private boolean mUnpushedLocationWaiting = false;
     private ServiceConnection mConnection;
     private Location mLastKnownLocation;
     private LocationCommunityService mService;
     private BroadCastReceiveUitility mBroadCastRecieveUtility;
-    private boolean mUnpushedLocationWaiting = false;
     private SettingAsker mStoragePermissionAsker;
     private SettingAsker mLocationAsker;
-
 
 
     public CreateEventActivity() {
@@ -89,24 +94,23 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //setContentView(R.layout.activity_create_event);
         super.onCreate(savedInstanceState);
 
         ButterKnife.bind(this);
         //Adapter for tag_spin
-        ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.tags));
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tag_spin.setAdapter(tag_spin_adapter);
 
         //Adapter for cat_spin
-        ArrayAdapter<String> cat_spin_adapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> cat_spin_adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.categories));
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         cat_spin.setAdapter(cat_spin_adapter);
 
         //Adapter for time_spin
-        ArrayAdapter<String> time_spin_adapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> time_spin_adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.Time_duration));
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
@@ -118,7 +122,9 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     }
 
-    /** Taking piuctures**/
+    /**
+     * Taking piuctures
+     **/
 
     @OnClick(R.id.imageView_Event)
     public void takePicture() {
@@ -127,7 +133,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             fetchPicture();
 
         } else {
-            mStoragePermissionAsker.askForPermission(new PermissionRequestCallback(){
+            mStoragePermissionAsker.askForPermission(new PermissionRequestCallback() {
                 @Override
                 public void onPermissionGranted() {
                     fetchPicture();
@@ -135,8 +141,9 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
                 @Override
                 public void onPermissionRefused() {
-                        // We have no permission halt for now
+                    // We have no permission halt for now
                 }
+
                 @Override
                 public boolean expirable() {
                     return true;
@@ -193,12 +200,11 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private void onPhotosReturned(List<File> imagesFiles) {
 
-        File file =imagesFiles.get(0);
+        File file = imagesFiles.get(0);
 
         mImageFilePath = Uri.fromFile(file); // get only image
 
-        BitmapFactory factory = new BitmapFactory();
-        mTakenImage = factory.decodeFile(String.valueOf(file.getAbsoluteFile()));
+        mTakenImage = BitmapFactory.decodeFile(String.valueOf(file.getAbsoluteFile()));
 
         viewer.setImageBitmap(mTakenImage); // Update view with file
 
@@ -210,8 +216,8 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
-        if(mLocationAsker.onResult(requestCode, permissions, grantResults)) {
-            if(mBound) {
+        if (mLocationAsker.onResult(requestCode, permissions, grantResults)) {
+            if (mBound) {
                 mService.getDeviceLocation(); //Not sure if this is redundant
             }
         }
@@ -225,9 +231,9 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         mLocationAsker.askToChangeSettings(new PermissionCallback() {
             @Override
             public void permissionGranted() {
-                if(mLastKnownLocation != null) {
+                if (mLastKnownLocation != null) {
                     transmitIssue();
-                 } else if(mBound){
+                } else if (mBound) {
                     giveMeLocation();
                 } else {
                     tellUserNoLOcation();
@@ -242,12 +248,13 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         });
     }
 
-    /** Tries to get a permission using different methods
+    /**
+     * Tries to get a permission using different methods
      * Calls back on create event when changed
      */
     private void giveMeLocation() {
 
-        if(mLocationAsker.havePermission()) {
+        if (mLocationAsker.havePermission()) {
 
             fetchLocationAndPush();
 
@@ -272,7 +279,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     }
 
     private void fetchLocationAndPush() {
-        if(mLastKnownLocation != null) {
+        if (mLastKnownLocation != null) {
             transmitIssue();
         } else {
             this.mUnpushedLocationWaiting = true;
@@ -333,7 +340,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private void transmitIssue() {
 
-        if(mLastKnownLocation == null ) {
+        if (mLastKnownLocation == null) {
             createEvent(); // Stuff not working call back
         } else {
             String sshort = short_description.getText().toString();
@@ -365,7 +372,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
-        if (mBound == false) {
+        if (!mBound) {
             this.mConnection = createNewServiceConnection();
             bindService(new Intent(this,
                     LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
@@ -395,7 +402,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
                 mBound = true;
 
-                if(mLocationAsker.havePermission()) {
+                if (mLocationAsker.havePermission()) {
                     mService.getDeviceLocation();
                 }
             }
@@ -416,8 +423,8 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     @Override
     public void locationIncoming(Location location) {
-        if(location != null) this.mLastKnownLocation = location;
-        if(mUnpushedLocationWaiting) { // we have an issue waiting to be pushed
+        if (location != null) this.mLastKnownLocation = location;
+        if (mUnpushedLocationWaiting) { // we have an issue waiting to be pushed
             fetchLocationAndPush();
             mUnpushedLocationWaiting = false;
         }

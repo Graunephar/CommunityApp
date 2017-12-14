@@ -11,7 +11,10 @@ import com.dom.communityapp.models.CommunityIssue;
 public interface FirebaseObserver {
 
     void onDataChanged(String value);
+
     void getImage(Uri downloadUrl);
+
     void onNewIssue(CommunityIssue issue);
+
     void imageDownloaded(CommunityIssue issue);
 }

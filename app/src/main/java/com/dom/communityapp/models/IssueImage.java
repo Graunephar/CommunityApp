@@ -13,7 +13,7 @@ import java.io.Serializable;
  * Created by daniel on 12/9/17.
  */
 
-public class IssueImage implements Serializable{
+public class IssueImage implements Serializable {
 
     @Exclude
     private Bitmap bitmap;
@@ -21,7 +21,7 @@ public class IssueImage implements Serializable{
     @Exclude
     private String localFilePath;
 
-    public String image_URL;
+    private String image_URL;
 
     public IssueImage() {
     }
@@ -68,7 +68,6 @@ public class IssueImage implements Serializable{
     @Exclude
     public Uri getFilePathAsURi() {
         return Uri.parse(localFilePath);
-
     }
 
     @Exclude

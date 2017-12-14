@@ -59,7 +59,7 @@ public class LocationSettingAsker implements SettingAsker {
                     LocationSettingsResponse response = task.getResult(ApiException.class);
                     // All location settings are satisfied. The client can initialize location
                     // requests here.
-                    if(callback != null) callback.permissionGranted();
+                    if (callback != null) callback.permissionGranted();
                 } catch (ApiException exception) {
                     switch (exception.getStatusCode()) {
                         case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
@@ -78,12 +78,12 @@ public class LocationSettingAsker implements SettingAsker {
                             } catch (ClassCastException e) {
                                 // Ignore, should be an impossible error.
                             }
-                            if(callback != null) callback.permissionGranted();
+                            if (callback != null) callback.permissionGranted();
                             break;
                         case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                             // Location settings are not satisfied. However, we have no way to fix the
                             // settings so we won't show the dialog.
-                            if(callback != null) callback.permissionRefused();
+                            if (callback != null) callback.permissionRefused();
                             break;
                     }
                 }
@@ -109,7 +109,6 @@ public class LocationSettingAsker implements SettingAsker {
     }
 
 
-
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     @Override
     public void askForPermission(final PermissionRequestCallback callback) {
@@ -123,7 +122,7 @@ public class LocationSettingAsker implements SettingAsker {
 
                 while (!mLocationRequestQueue.isEmpty()) { // If we have old permission requests we will let them know that there is now permission
                     PermissionRequestCallback oldcallback = mLocationRequestQueue.remove();
-                    if(!oldcallback.expirable()) {
+                    if (!oldcallback.expirable()) {
                         oldcallback.onPermissionGranted(); //TODO Old permission requests should poperbly expire at some point
                     }
                 }
@@ -137,7 +136,6 @@ public class LocationSettingAsker implements SettingAsker {
         });
 
     }
-
 
 
 }

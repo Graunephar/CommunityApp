@@ -42,18 +42,18 @@ public class StorageSettingAsker implements SettingAsker {
 
     @Override
     public void askForPermission(final PermissionRequestCallback callback) {
-            Nammu.askForPermission(this.mActivity, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, new PermissionCallback() {
-                @Override
-                public void permissionGranted() {
-                    callback.onPermissionGranted();
+        Nammu.askForPermission(this.mActivity, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, new PermissionCallback() {
+            @Override
+            public void permissionGranted() {
+                callback.onPermissionGranted();
 
-                }
+            }
 
-                @Override
-                public void permissionRefused() {
-                    callback.onPermissionRefused();
-                }
-            });
+            @Override
+            public void permissionRefused() {
+                callback.onPermissionRefused();
+            }
+        });
 
-        }
+    }
 }

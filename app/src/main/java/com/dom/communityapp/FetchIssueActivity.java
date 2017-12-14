@@ -16,18 +16,25 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class FetchIssueActivity extends AppCompatActivity implements FirebaseObserver{
+public class FetchIssueActivity extends AppCompatActivity implements FirebaseObserver {
 
-    @BindView(R.id.fetch_imageView_pic) ImageView imgView;
-    @BindView(R.id.fetch_txt_shortdescription) TextView txtShortDescription;
-    @BindView(R.id.fetch_txt_view_longdescription) TextView txtLongDescription;
-    @BindView(R.id.fetch_txt_view_tag) TextView txtTag;
-    @BindView(R.id.fetch_txt_view_time) TextView txtTime;
-    @BindView(R.id.fetch_txtview_category) TextView txtCategory;
-    @BindView(R.id.fetch_txtview_id) TextView txtID;
+    @BindView(R.id.fetch_imageView_pic)
+    ImageView imgView;
+    @BindView(R.id.fetch_txt_shortdescription)
+    TextView txtShortDescription;
+    @BindView(R.id.fetch_txt_view_longdescription)
+    TextView txtLongDescription;
+    @BindView(R.id.fetch_txt_view_tag)
+    TextView txtTag;
+    @BindView(R.id.fetch_txt_view_time)
+    TextView txtTime;
+    @BindView(R.id.fetch_txtview_category)
+    TextView txtCategory;
+    @BindView(R.id.fetch_txtview_id)
+    TextView txtID;
 
 
-    private  FirebaseDatabaseStorage mFirebaseDatabaseStorage;
+    private FirebaseDatabaseStorage mFirebaseDatabaseStorage;
     private CommunityIssue mCurrentIssue;
 
     @Override
@@ -41,7 +48,6 @@ public class FetchIssueActivity extends AppCompatActivity implements FirebaseObs
 
         ButterKnife.bind(this);
     }
-
 
 
     @OnClick(R.id.fetch_btn)
@@ -69,7 +75,7 @@ public class FetchIssueActivity extends AppCompatActivity implements FirebaseObs
         txtLongDescription.setText(issue.getLong_description());
 
         IssueImage image = issue.issueImage;
-        if(image.getBitmap() != null) { // Image is already downloaded
+        if (image.getBitmap() != null) { // Image is already downloaded
             updateView(image.getBitmap());
         }
     }
@@ -77,7 +83,7 @@ public class FetchIssueActivity extends AppCompatActivity implements FirebaseObs
     @Override
     public void imageDownloaded(CommunityIssue issue) {
 
-        if(issue.firebaseID == mCurrentIssue.firebaseID && issue.issueImage.getBitmap() != null) {
+        if (issue.firebaseID.equals(mCurrentIssue.firebaseID) && issue.issueImage.getBitmap() != null) {
             updateView(issue.issueImage.getBitmap());
         }
 

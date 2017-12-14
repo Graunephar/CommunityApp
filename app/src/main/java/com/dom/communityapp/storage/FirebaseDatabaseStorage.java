@@ -48,11 +48,11 @@ public class FirebaseDatabaseStorage {
     private List<IssueLocationListener> mLocationListeners;
     private static final String IMG_LOCATION = "images/";
 
-    final long FIVE_MEGABYTES = 1024 * 1024 * 5;
-    private final BitmapFactory mBitmapFactory;
+    private final long FIVE_MEGABYTES = 1024 * 1024 * 5;
+    //private final BitmapFactory mBitmapFactory;
 
     //STORAGE:
-    Context mContext;
+    private Context mContext;
     private UploadTask uploadTask;
     private StorageReference mFirebaseStorageReference;
     private ArrayList<FirebaseObserver> observers;
@@ -62,7 +62,7 @@ public class FirebaseDatabaseStorage {
     private DatabaseReference mFirebaseRootReference;
 
     private DatabaseReference mFirebaseIssueReference;
-    private  GeoFire mGeoFire;
+    private GeoFire mGeoFire;
     private FirebaseAuth mFirebaseAuth;
 
 
@@ -76,7 +76,6 @@ public class FirebaseDatabaseStorage {
         this.mGeoFire = new GeoFire(georeference);
 
         this.observers = new ArrayList<>();
-        this.mBitmapFactory = new BitmapFactory();
         attachListeners();
         this.mLocationListeners = new ArrayList<>();
     }
@@ -89,14 +88,14 @@ public class FirebaseDatabaseStorage {
                 issue.setFirebaseID(dataSnapshot.getKey());
                 final IssueImage image = issue.issueImage;
 
-                if(image != null) {
+                if (image != null) {
 
                     StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
 
                     httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                         @Override
                         public void onSuccess(byte[] bytes) {
-                            Bitmap bitmap = mBitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                             image.setBitmap(bitmap);
                             for (FirebaseObserver observer : observers) {
                                 observer.imageDownloaded(issue);
@@ -114,16 +113,20 @@ public class FirebaseDatabaseStorage {
             //TODO How many of these should be used?
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
+            }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {
+            }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onCancelled(DatabaseError databaseError) {
+            }
         });
     }
 
@@ -131,25 +134,21 @@ public class FirebaseDatabaseStorage {
         observers.add(observer);
     }
 
-    public void removeObserver(FirebaseObserver observer){
+    public void removeObserver(FirebaseObserver observer) {
         observers.remove(observer);
     }
 
-    public void addLocationListener(IssueLocationListener listener){
+    public void addLocationListener(IssueLocationListener listener) {
         mLocationListeners.add(listener);
     }
 
-    public void removeLocationListener(IssueLocationListener listener){
+    public void removeLocationListener(IssueLocationListener listener) {
         mLocationListeners.remove(listener);
     }
 
     //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
     public void saveToDatabase(CommunityIssue data) {
-
-        // Chose one or the other:
         mFirebaseIssueReference.push().setValue(data);  //creates a unique id in database
-        //mFirebaseIssueReference.child("value").setValue(data);  //creates one value, which is easy to fetch
-
     }
 
 
@@ -179,7 +178,7 @@ public class FirebaseDatabaseStorage {
 
     }
 
-    public void saveIssueToDatabase(CommunityIssue issue) {
+    private void saveIssueToDatabase(CommunityIssue issue) {
 
         String id = mFirebaseIssueReference.push().getKey();
 
@@ -197,7 +196,7 @@ public class FirebaseDatabaseStorage {
         mFirebaseIssueReference.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(FirebaseObserver observer : observers) {
+                for (FirebaseObserver observer : observers) {
                     observer.onDataChanged(dataSnapshot.getValue(String.class));
                 }
 
@@ -289,7 +288,7 @@ public class FirebaseDatabaseStorage {
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
 
-                    for(FirebaseObserver observer : observers) { //Notify all observers about upload
+                    for (FirebaseObserver observer : observers) { //Notify all observers about upload
                         observer.getImage(downloadUrl);
                     }
 
@@ -318,7 +317,7 @@ public class FirebaseDatabaseStorage {
         }
     }
 
-    public void addLocationQuery(Location location, double radius){
+    public void addLocationQuery(Location location, double radius) {
         final double latitude = location.getLatitude();
         double longitude = location.getLongitude();
 
@@ -328,7 +327,7 @@ public class FirebaseDatabaseStorage {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 Toast.makeText(mContext.getApplicationContext(), "onKeyEntered" + location.toString(), Toast.LENGTH_LONG).show();
-                for (IssueLocationListener listener : mLocationListeners){
+                for (IssueLocationListener listener : mLocationListeners) {
                     LatLng latlng = new LatLng(location.latitude, location.longitude);
                     attachListenerToNewIssue(key, listener, latlng);
                 }
@@ -336,33 +335,34 @@ public class FirebaseDatabaseStorage {
 
             @Override
             public void onKeyExited(String key) {
-                Toast.makeText(mContext.getApplicationContext(), "onKeyExited" + key.toString(), Toast.LENGTH_LONG).show();
+                //  Toast.makeText(mContext.getApplicationContext(), "onKeyExited" + key, Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onKeyMoved(String key, GeoLocation location) {
-                Toast.makeText(mContext.getApplicationContext(), "onKeyMoved" + location.toString(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(mContext.getApplicationContext(), "onKeyMoved" + location.toString(), Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onGeoQueryReady() {
-                Toast.makeText(mContext.getApplicationContext(), "onGeoQueryReady" , Toast.LENGTH_LONG).show();
+            //    Toast.makeText(mContext.getApplicationContext(), "onGeoQueryReady", Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onGeoQueryError(DatabaseError error) {
-                Toast.makeText(mContext.getApplicationContext(), "onGeoQueryError" + error, Toast.LENGTH_LONG).show();
+                // Toast.makeText(mContext.getApplicationContext(), "onGeoQueryError" + error, Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void attachListenerToNewIssue(String firebaseId, final IssueLocationListener callback, final LatLng location){
+    private void attachListenerToNewIssue(String firebaseId, final IssueLocationListener callback, final LatLng location) {
         DatabaseReference ref = mFirebaseIssueReference.child(firebaseId).getRef();
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) { // At instansation gives all data, changes are receiced herafter
                 CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
+
                 issue.setCoordinate(location);
                 callback.newIssue(issue);
             }
@@ -387,7 +387,7 @@ public class FirebaseDatabaseStorage {
     private class AuthException extends RuntimeException {
         private final String message;
 
-        public AuthException(String message) {
+        private AuthException(String message) {
             this.message = message;
         }
     }

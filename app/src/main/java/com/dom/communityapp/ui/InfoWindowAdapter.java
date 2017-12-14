@@ -57,7 +57,7 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
     private void setIcon() {
         Bitmap bitmap = mIssue.getIssueImage().getBitmap();
-        if(bitmap != null ) {
+        if (bitmap != null) {
             iconView.setImageBitmap(mIssue.getIssueImage().getBitmap());
         }
     }

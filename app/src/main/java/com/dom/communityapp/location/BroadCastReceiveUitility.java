@@ -28,6 +28,7 @@ public class BroadCastReceiveUitility {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
+                //TODO: may produce nullpointer Exception
                 Location location = (Location) bundle.getParcelable(EXTRA_LAST_LOCATION);
                 mActivity.locationIncoming(location);
             }
@@ -41,7 +42,6 @@ public class BroadCastReceiveUitility {
         filter.addAction(BroadCastSendUtility.BROADCAST_BACKGROUND_SERVICE_RESULT);
         LocalBroadcastManager.getInstance((Context) mActivity).registerReceiver(mBroadcastReceiver, filter);
     }
-
 
 
 }

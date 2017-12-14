@@ -1,12 +1,9 @@
 package com.dom.communityapp.models;
 
-import android.location.Location;
 
 import com.dom.communityapp.R;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,26 +12,26 @@ import java.util.List;
  * Created by daniel on 12/8/17.
  */
 
-public class CommunityIssue implements Serializable{
+public class CommunityIssue implements Serializable {
 
     public IssueImage issueImage;
 
     @Exclude
-    public LatLng coordinate;
+    private LatLng coordinate;
 
     public String name;
 
-    public String long_description;
+    private String long_description;
 
-    public String short_description;
+    private String short_description;
 
-    public List<String> comments;
+    private List<String> comments;
 
-    public String tag;
+    private String tag;
 
-    public String timed_duration;
+    private String timed_duration;
 
-    public String category;
+    private String category;
 
     @Exclude
     public String firebaseID;
@@ -47,7 +44,7 @@ public class CommunityIssue implements Serializable{
         this.category = cat_text;
         this.tag = tag_text;
         this.timed_duration = time_text;
-        this.short_description= sshort;
+        this.short_description = sshort;
         this.long_description = llong;
         this.issueImage = issueImage;
     }
@@ -56,7 +53,7 @@ public class CommunityIssue implements Serializable{
         this.category = cat_text;
         this.tag = tag_text;
         this.timed_duration = time_text;
-        this.short_description= sshort;
+        this.short_description = sshort;
         this.long_description = llong;
         this.issueImage = issueImage;
         this.coordinate = coordinate;
@@ -66,7 +63,7 @@ public class CommunityIssue implements Serializable{
         this.category = cat_text;
         this.tag = tag_text;
         this.timed_duration = time_text;
-        this.short_description= sshort;
+        this.short_description = sshort;
         this.long_description = llong;
     }
 
