@@ -18,7 +18,6 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,8 +34,6 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.security.auth.callback.Callback;
 
 
 /**
@@ -86,7 +83,7 @@ public class FirebaseDatabaseStorage {
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
                 final CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
                 issue.setFirebaseID(dataSnapshot.getKey());
-                final IssueImage image = issue.issueImage;
+                final IssueImage image = issue.getIssueImage();
 
                 if (image != null) {
 
@@ -326,26 +323,43 @@ public class FirebaseDatabaseStorage {
         query.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
-                Toast.makeText(mContext.getApplicationContext(), "onKeyEntered" + location.toString(), Toast.LENGTH_LONG).show();
+                //  Toast.makeText(mContext.getApplicationContext(), "onKeyEntered" + location.toString(), Toast.LENGTH_LONG).show();
                 for (IssueLocationListener listener : mLocationListeners) {
                     LatLng latlng = new LatLng(location.latitude, location.longitude);
-                    attachListenerToNewIssue(key, listener, latlng);
+                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
+                        @Override
+                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
+                            callback.newIssue(subject);
+                        }
+                    });
                 }
             }
 
             @Override
             public void onKeyExited(String key) {
+                for (IssueLocationListener listener : mLocationListeners) {
+                    listener.issueRemoved(new CommunityIssue(key));
+                }
                 //  Toast.makeText(mContext.getApplicationContext(), "onKeyExited" + key, Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onKeyMoved(String key, GeoLocation location) {
                 //Toast.makeText(mContext.getApplicationContext(), "onKeyMoved" + location.toString(), Toast.LENGTH_LONG).show();
+                for (IssueLocationListener listener : mLocationListeners) {
+                    LatLng latlng = new LatLng(location.latitude, location.longitude);
+                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
+                        @Override
+                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
+                            callback.movedIssue(subject);
+                        }
+                    });
+                }
             }
 
             @Override
             public void onGeoQueryReady() {
-            //    Toast.makeText(mContext.getApplicationContext(), "onGeoQueryReady", Toast.LENGTH_LONG).show();
+                //    Toast.makeText(mContext.getApplicationContext(), "onGeoQueryReady", Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -355,16 +369,17 @@ public class FirebaseDatabaseStorage {
         });
     }
 
-    private void attachListenerToNewIssue(String firebaseId, final IssueLocationListener callback, final LatLng location) {
+    private void attachListenerToNewIssue(String firebaseId, final LatLng location, final IssueLocationListener listener, final FirebaseBiConsumer<CommunityIssue, IssueLocationListener> callback) {
         DatabaseReference ref = mFirebaseIssueReference.child(firebaseId).getRef();
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) { // At instansation gives all data, changes are receiced herafter
-                CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
 
+                CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
+                issue.setFirebaseID(dataSnapshot.getKey());
                 issue.setCoordinate(location);
-                callback.newIssue(issue);
+                callback.accept(issue, listener);
             }
 
             @Override
@@ -381,6 +396,12 @@ public class FirebaseDatabaseStorage {
 
     private interface FirebaseConsumer<U> {
         void accept(U subject);
+
+    }
+
+
+    private interface FirebaseBiConsumer<U, T> {
+        void accept(U subject, T callback);
 
     }
 

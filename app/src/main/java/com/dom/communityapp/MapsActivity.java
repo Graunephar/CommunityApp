@@ -43,6 +43,7 @@ import com.google.maps.android.ui.BubbleIconFactory;
 import com.google.maps.android.ui.IconGenerator;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 
 import static java.lang.Thread.sleep;
 
@@ -61,6 +62,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private LocationCommunityService mService;
     private boolean mBound;
     private ServiceConnection mConnection;
+    private HashMap<String, CommunityIssue> mIssues;
 
     private LocationSettingAsker mLocationAsker;
     //    private LatLng mDefaultLocation = new LatLng(55.676098, 12.568337);
@@ -73,6 +75,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         this.mFirebaseStorage = new FirebaseDatabaseStorage(this);
         this.mFirebaseStorage.addObserver(this);
         this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
+        mIssues = new HashMap<>();
     }
 
     @Override
@@ -154,7 +157,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
-        mAdapterManager = new InfoWindowAdapterManager();
+        mAdapterManager = new InfoWindowAdapterManager(this);
         mMap.setInfoWindowAdapter(mAdapterManager);
 
         updateMap();
@@ -238,17 +241,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
-    private void addIcon(CommunityIssue issue) {
-        MarkerOptions markerOptions = new MarkerOptions().
-                position(issue.getCoordinate());
-
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(issue.getIcon()));
-        Marker currentMarker = mMap.addMarker(markerOptions);
-        this.mAdapterManager.addAdapter(currentMarker, new InfoWindowAdapter(this, issue));
-
-    }
-
-
     private void centerView() {
         if (mLastKnownLocation != null) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -256,6 +248,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
         }
     }
+
 
     /**
      * Storage stuff
@@ -278,18 +271,19 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     @Override
-    public void imageDownloaded(CommunityIssue issue) {
+    public void imageDownloaded(CommunityIssue incomingissue) {
+
+        if (mIssues.containsKey(incomingissue.getFirebaseID())) {
+            CommunityIssue newissue = mIssues.get(incomingissue.getFirebaseID());
 
 
-        if (lastIssue.getFirebaseID().equals(issue.getFirebaseID())) {
-            Bitmap issuebitmap = issue.issueImage.getBitmap();
+            Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             byte[] byteArray = stream.toByteArray();
             Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
             Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-            Toast.makeText(getApplicationContext(), "IMAGE LOADED", Toast.LENGTH_LONG).show();
-            lastIssue.getIssueImage().setBitmap(croppedbitmap);
+            newissue.getIssueImage().setBitmap(croppedbitmap);
         }
     }
 
@@ -308,6 +302,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                     LocationCommunityService.class), mConnection, Context.BIND_AUTO_CREATE);
         }
     }
+
 
     //https://developers.google.com/maps/documentation/android-api/current-place-tutorial#location-permission
     @Override
@@ -354,7 +349,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         };
     }
 
-
     @Override
     public void locationIncoming(Location location) {
         mLastKnownLocation = location;
@@ -366,6 +360,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         }
     }
 
+
     private void startLocationListening(Location location) {
         mFirebaseStorage.addLocationListener(this);
         mFirebaseStorage.addLocationQuery(location, 2);
@@ -374,16 +369,43 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     @Override
     public void issueRemoved(CommunityIssue issue) {
+        mIssues.remove(issue.getFirebaseID());
+        mAdapterManager.removeAdapterByIssue(issue);
+
 
     }
 
     @Override
     public void newIssue(CommunityIssue issue) {
+        mIssues.put(issue.getFirebaseID(), issue);
         addIcon(issue);
     }
 
     @Override
     public void movedIssue(CommunityIssue issue) {
+        moveIcon(issue  );
+
+    }
+
+    private void addIcon(CommunityIssue issue) {
+        Marker marker = createMarker(issue);
+        this.mAdapterManager.addAdapter(marker, issue);
+
+    }
+
+    private Marker createMarker(CommunityIssue issue) {
+        MarkerOptions markerOptions = new MarkerOptions().
+                position(issue.getCoordinate());
+
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(issue.getIcon()));
+        Marker currentMarker = mMap.addMarker(markerOptions);
+
+        return currentMarker;
+    }
+
+    private void moveIcon(CommunityIssue issue) {
+        Marker marker = createMarker(issue);
+        mAdapterManager.changeMarker(issue, marker);
 
     }
 }

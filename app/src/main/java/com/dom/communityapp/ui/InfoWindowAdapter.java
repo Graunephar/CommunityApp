@@ -18,9 +18,9 @@ import com.google.android.gms.maps.model.Marker;
 
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
-    private final Activity mContext;
+    private Activity mContext;
     private final CommunityIssue mIssue;
-    private final View mView;
+    private View mView;
     private TextView markerLabel;
     private TextView anotherLabel;
 
@@ -33,6 +33,10 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         this.mView = mContext.getLayoutInflater().inflate(R.layout.bubble_marker_layout, null);
         iconView = (ImageView) mView.findViewById(R.id.marker_icon);
 
+    }
+
+    public InfoWindowAdapter(CommunityIssue issue) {
+        this.mIssue = issue;
     }
 
 
@@ -60,5 +64,22 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         if (bitmap != null) {
             iconView.setImageBitmap(mIssue.getIssueImage().getBitmap());
         }
+    }
+
+    public CommunityIssue getIssue() {
+        return mIssue;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (!(obj instanceof InfoWindowAdapter)) return false;
+        InfoWindowAdapter objadapter = (InfoWindowAdapter) obj;
+        return this.mIssue.equals(objadapter.mIssue);
+    }
+
+    @Override
+    public int hashCode() {
+        return mIssue.hashCode();
     }
 }

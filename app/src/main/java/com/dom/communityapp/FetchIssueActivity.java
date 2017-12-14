@@ -74,7 +74,7 @@ public class FetchIssueActivity extends AppCompatActivity implements FirebaseObs
         txtShortDescription.setText(issue.getShort_description());
         txtLongDescription.setText(issue.getLong_description());
 
-        IssueImage image = issue.issueImage;
+        IssueImage image = issue.getIssueImage();
         if (image.getBitmap() != null) { // Image is already downloaded
             updateView(image.getBitmap());
         }
@@ -83,8 +83,8 @@ public class FetchIssueActivity extends AppCompatActivity implements FirebaseObs
     @Override
     public void imageDownloaded(CommunityIssue issue) {
 
-        if (issue.firebaseID.equals(mCurrentIssue.firebaseID) && issue.issueImage.getBitmap() != null) {
-            updateView(issue.issueImage.getBitmap());
+        if (issue.getFirebaseID().equals(mCurrentIssue.getFirebaseID()) && issue.getIssueImage().getBitmap() != null) {
+            updateView(issue.getIssueImage().getBitmap());
         }
 
     }

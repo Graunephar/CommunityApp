@@ -14,12 +14,12 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable {
 
-    public IssueImage issueImage;
+    private IssueImage issueImage;
 
     @Exclude
     private LatLng coordinate;
 
-    public String name;
+    private String name;
 
     private String long_description;
 
@@ -34,7 +34,7 @@ public class CommunityIssue implements Serializable {
     private String category;
 
     @Exclude
-    public String firebaseID;
+    private String firebaseID;
 
     //Default constructor required by firebase, just like the getters and setters for all the things
     public CommunityIssue() {
@@ -65,6 +65,10 @@ public class CommunityIssue implements Serializable {
         this.timed_duration = time_text;
         this.short_description = sshort;
         this.long_description = llong;
+    }
+
+    public CommunityIssue(String key) {
+        this.firebaseID = key;
     }
 
 
@@ -176,5 +180,19 @@ public class CommunityIssue implements Serializable {
                 break;
         }
         return iconresult;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (!(obj instanceof CommunityIssue)) return false;
+        CommunityIssue objissue = (CommunityIssue) obj;
+
+        return this.firebaseID.equals(objissue.firebaseID);
+    }
+
+    @Override
+    public int hashCode() {
+        return firebaseID.hashCode();
     }
 }
