@@ -18,7 +18,7 @@
         <item>Road</item>
     </string-array>
     <string-array name="Time_duration">
-        <item>>An hour</item>
+        <item>An hour</item>
         <item>Afternoon</item>
         <item>Weekend</item>
         <item>Short project</item>

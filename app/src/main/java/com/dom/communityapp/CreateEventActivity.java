@@ -43,6 +43,7 @@ import pl.tajchert.nammu.PermissionCallback;
 
 
 public class CreateEventActivity extends AbstractNavigation implements LocationListener {
+    private static final String IMAGE = "";
 
     //Local variable
 
@@ -89,11 +90,12 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         ButterKnife.bind(this);
 
-        // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
 
-
+            mTakenImage = savedInstanceState.getParcelable(IMAGE);
+            viewer.setImageBitmap(mTakenImage);
         }
+
 
         //Adapter for tag_spin
         ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<>(this,
@@ -123,7 +125,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     @Override
     protected void onSaveInstanceState(Bundle outState) {
 
-
+       outState.putParcelable(IMAGE, mTakenImage);
         super.onSaveInstanceState(outState);
     }
 
