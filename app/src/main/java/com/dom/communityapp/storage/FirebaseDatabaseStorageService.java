@@ -38,6 +38,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -172,7 +173,6 @@ public class FirebaseDatabaseStorageService extends Service {
 
             }
         });
-
     }
 
     private void CompressionErrorDetected(FirebaseImageUploadObserver observer, FirebaseImageCopressionException e) {
@@ -273,7 +273,7 @@ public class FirebaseDatabaseStorageService extends Service {
 
     private Uri compressImage(Uri filepath) throws FirebaseImageCopressionException {
 
-        File imagefile = new File(String.valueOf(filepath));
+        File imagefile = new File(filepath.getPath());
         File compressedImageFile = null;
 
         try {
@@ -282,7 +282,7 @@ public class FirebaseDatabaseStorageService extends Service {
             throw new FirebaseImageCopressionException("ERRRRRRROOOORR BADNESS 1000000");
         }
 
-        return Uri.parse(compressedImageFile.getAbsolutePath());
+        return Uri.fromFile(compressedImageFile);
 
     }
 
@@ -347,7 +347,6 @@ public class FirebaseDatabaseStorageService extends Service {
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) { // At instansation gives all data, changes are receiced herafter
-
                 CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
                 issue.setFirebaseID(dataSnapshot.getKey());
                 issue.setCoordinate(location);
