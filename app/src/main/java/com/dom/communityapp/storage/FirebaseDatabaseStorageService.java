@@ -1,12 +1,17 @@
 package com.dom.communityapp.storage;
 
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Binder;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
@@ -40,31 +45,32 @@ import java.util.List;
  * Created by mrl on 07/12/2017.
  */
 
-public class FirebaseDatabaseStorage {
+public class FirebaseDatabaseStorageService extends Service {
 
     private List<IssueLocationListener> mLocationListeners;
-    private static final String IMG_LOCATION = "images/";
+    private ArrayList<FirebaseObserver> observers;
 
     private final long FIVE_MEGABYTES = 1024 * 1024 * 5;
-    //private final BitmapFactory mBitmapFactory;
 
     //STORAGE:
-    private Context mContext;
     private UploadTask uploadTask;
-    private StorageReference mFirebaseStorageReference;
-    private ArrayList<FirebaseObserver> observers;
 
     //DATABASE:
     //ref pointing to root
     private DatabaseReference mFirebaseRootReference;
 
     private DatabaseReference mFirebaseIssueReference;
+    private StorageReference mFirebaseStorageReference;
+    private static final String IMG_LOCATION = "images/";
     private GeoFire mGeoFire;
     private FirebaseAuth mFirebaseAuth;
 
+    /* Service */
+    private IBinder mBinder;
+    private String logTag = "LOCATION_SERVICE";
 
-    public FirebaseDatabaseStorage(Context uploadActivity) {
-        this.mContext = uploadActivity;
+
+    public FirebaseDatabaseStorageService() {
         mFirebaseAuth = FirebaseAuth.getInstance();
         this.mFirebaseRootReference = FirebaseDatabase.getInstance().getReference();
         this.mFirebaseStorageReference = FirebaseStorage.getInstance().getReference();
@@ -75,6 +81,9 @@ public class FirebaseDatabaseStorage {
         this.observers = new ArrayList<>();
         attachListeners();
         this.mLocationListeners = new ArrayList<>();
+
+        this.mBinder = new LocalBinder();
+
     }
 
     private void attachListeners() {
@@ -252,68 +261,6 @@ public class FirebaseDatabaseStorage {
 
     }
 
-    public void uploadFile(final Uri filepath) {
-
-        checkFirebaseSignInAndDoStuff(filepath, new FirebaseConsumer<Uri>() {
-            @Override
-            public void accept(Uri subject) {
-                uploadFileFromActivity(filepath);
-            }
-        });
-
-    }
-
-    private void uploadFileFromActivity(Uri filepath) {
-        //REF: https://www.simplifiedcoding.net/firebase-storage-tutorial-android/
-        //REF: https://theengineerscafe.com/firebase-storage-android-tutorial/
-        if (filepath != null) {
-
-            final ProgressDialog progressDialog = new ProgressDialog(mContext);
-            progressDialog.setMax(100);
-            progressDialog.setMessage("Uploading...");
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.show();
-            progressDialog.setCancelable(false);
-
-            StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
-
-            uploadTask = imageRef.putFile(filepath);
-
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-                    for (FirebaseObserver observer : observers) { //Notify all observers about upload
-                        observer.getImage(downloadUrl);
-                    }
-
-                    progressDialog.dismiss();
-                }
-            });
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    progressDialog.dismiss();
-                    Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
-
-            uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                    progressDialog.setMessage("Uploaded " + ((int) progress) + "%...");
-                }
-            });
-        }
-        //if there is no file
-        else {
-
-        }
-    }
-
     public void addLocationQuery(Location location, double radius) {
         final double latitude = location.getLatitude();
         double longitude = location.getLongitude();
@@ -410,6 +357,30 @@ public class FirebaseDatabaseStorage {
 
         private AuthException(String message) {
             this.message = message;
+        }
+    }
+
+
+    /* Service related stuff */
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(logTag, "Location service destroyed");
+        //mPreferenceUtility.saveToSharedPreferences(mCityNameList);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(logTag, "Service bound.");
+        return mBinder;
+    }
+
+
+    public class LocalBinder extends Binder {
+        public FirebaseDatabaseStorageService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return FirebaseDatabaseStorageService.this;
         }
     }
 
