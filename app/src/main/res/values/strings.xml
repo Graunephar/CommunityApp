@@ -11,11 +11,11 @@
         <item>Professional service</item>
     </string-array>
     <string-array name="categories">
-        <item>Local</item>
-        <item>Cleaning</item>
-        <item>Work</item>
+        <item>Build</item>
+        <item>Clean</item>
+        <item>Maintenance</item>
         <item>Trash</item>
-        <item>Road</item>
+        <item>Logistiks</item>
     </string-array>
     <string-array name="Time_duration">
         <item>An hour</item>
