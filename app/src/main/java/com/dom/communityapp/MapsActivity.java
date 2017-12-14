@@ -285,15 +285,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void imageDownloaded(CommunityIssue incomingissue) {
 
 
-        /*
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-
-         */
-
         CommunityIssue newissue = null;
 
         if (mIssues.containsKey(incomingissue.getFirebaseID())) {
@@ -306,6 +297,11 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
         newissue.getIssueImage().setBitmap(issuebitmap);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
     }
 
 
