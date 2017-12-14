@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.content.Intent;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
@@ -27,6 +28,7 @@ import com.dom.communityapp.models.IssueImage;
 import com.dom.communityapp.permisssion.SettingAsker;
 import com.dom.communityapp.permisssion.StorageSettingAsker;
 import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
+import com.dom.communityapp.storage.FirebaseImageUploadObserver;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -41,7 +43,7 @@ import pl.aprilapps.easyphotopicker.EasyImage;
 import pl.tajchert.nammu.PermissionCallback;
 
 
-public class CreateEventActivity extends AbstractNavigation implements LocationListener {
+public class CreateEventActivity extends AbstractNavigation implements LocationListener, FirebaseImageUploadObserver {
 
     //Local variable
 
@@ -164,12 +166,14 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     protected void onStart() {
         super.onStart();
         bindToLocationService();
+        bindToStorageService();
         mBroadCastRecieveUtility.registerForBroadcasts();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        unbindFromStorageService();
         unbindFromLocationService();
     }
 
@@ -481,11 +485,15 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
             CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
 
-            mStorageService.saveIssueAndImageToDatabase(issue);
+            mStorageService.saveIssueAndImageToDatabase(issue, this);
         } else {
             //TODO Maybe push to quere??
         }
     }
 
 
+    @Override
+    public void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCopressionException e) {
+        Toast.makeText(getApplicationContext(), R.string.image_compression_error, Toast.LENGTH_SHORT).show();
+    }
 }

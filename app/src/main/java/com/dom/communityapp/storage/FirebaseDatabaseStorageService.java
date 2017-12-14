@@ -37,8 +37,12 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import id.zelory.compressor.Compressor;
 
 
 /**
@@ -152,33 +156,35 @@ public class FirebaseDatabaseStorageService extends Service {
         mLocationListeners.remove(listener);
     }
 
-    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void saveToDatabase(CommunityIssue data) {
-        mFirebaseIssueReference.push().setValue(data);  //creates a unique id in database
-    }
 
-
-    public void saveIssueAndImageToDatabase(final CommunityIssue issue) {
+    public void saveIssueAndImageToDatabase(final CommunityIssue issue, final FirebaseImageUploadObserver observer) {
         final IssueImage issueImage = issue.getIssueImage();
 
         checkFirebaseSignInAndDoStuff(Uri.parse(issueImage.getLocalFilePath()), new FirebaseConsumer<Uri>() {
             @Override
             public void accept(Uri subject) {
 
-                uploadFileAndAddIssue(subject, issueImage, issue);
+                try {
+                    uploadFileAndAddIssue(subject, issueImage, issue);
+                } catch (FirebaseImageCopressionException e) {
+                    CompressionErrorDetected(observer, e);
+                }
 
             }
         });
 
     }
 
-    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) {
+    private void CompressionErrorDetected(FirebaseImageUploadObserver observer, FirebaseImageCopressionException e) {
+        observer.onImageErrorDetected(e);
+    }
+
+    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) throws FirebaseImageCopressionException {
         uploadFileLocal(filepath, new FirebaseFileUploadCallback() { // first we push the issueImage
             @Override
             public void onUploadSuccess(Uri donwloaduri) { // When imaged is in storage we can save the issue
                 issueImage.setImage_URL(String.valueOf(donwloaduri)); //Save reference to url in issueImage
                 saveIssueToDatabase(issue); //Now push the issue
-
             }
         });
 
@@ -240,8 +246,12 @@ public class FirebaseDatabaseStorageService extends Service {
     }
 
     //Made to upload files in background without updating a gui at the same time...
-    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) {
+    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) throws FirebaseImageCopressionException {
         StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
+
+
+        filepath = compressImage(filepath);
+
         uploadTask = imageRef.putFile(filepath);
 
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -258,6 +268,21 @@ public class FirebaseDatabaseStorageService extends Service {
                 throw new AuthException(exception.getMessage());
             }
         });
+
+    }
+
+    private Uri compressImage(Uri filepath) throws FirebaseImageCopressionException {
+
+        File imagefile = new File(String.valueOf(filepath));
+        File compressedImageFile = null;
+
+        try {
+            compressedImageFile = new Compressor(this).compressToFile(imagefile);
+        } catch (IOException e) {
+            throw new FirebaseImageCopressionException("ERRRRRRROOOORR BADNESS 1000000");
+        }
+
+        return Uri.parse(compressedImageFile.getAbsolutePath());
 
     }
 
@@ -359,6 +384,16 @@ public class FirebaseDatabaseStorageService extends Service {
             this.message = message;
         }
     }
+
+    public class FirebaseImageCopressionException extends IOException {
+        private final String message;
+
+        private FirebaseImageCopressionException(String message) {
+            this.message = message;
+        }
+    }
+
+
 
 
     /* Service related stuff */

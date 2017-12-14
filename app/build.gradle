@@ -42,6 +42,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.jakewharton:butterknife:8.8.1'
     compile 'com.google.code.gson:gson:2.8.2'
+    compile 'id.zelory:compressor:2.1.0'
     compile 'com.github.jkwiecien:EasyImage:2.0.2'
     compile 'com.github.tajchert:nammu:1.2.0'
     compile 'com.firebase:geofire-android:2.1.3'
