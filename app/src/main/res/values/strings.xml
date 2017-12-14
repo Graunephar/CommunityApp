@@ -6,23 +6,23 @@
     <string name="create_event_Btn">CREATE EVENT</string>
 
     <string-array name="tags">
-        <item>One man job</item>
-        <item>Coop event</item>
-        <item>Professional service</item>
+        <item>@string/tags_job</item>
+        <item>@string/tags_coop</item>
+        <item>@string/tags_pro</item>
     </string-array>
     <string-array name="categories">
-        <item>Build</item>
-        <item>Clean</item>
-        <item>Maintenance</item>
-        <item>Trash</item>
-        <item>Logistiks</item>
+        <item>@string/cat_build</item>
+        <item>@string/cat_clean</item>
+        <item>@string/cat_maintenance</item>
+        <item>@string/cat_trash</item>
+        <item>@string/cat_log</item>
     </string-array>
     <string-array name="Time_duration">
-        <item>An hour</item>
-        <item>Afternoon</item>
-        <item>Weekend</item>
-        <item>Short project</item>
-        <item>Long spanning project</item>
+        <item>@string/time_hour</item>
+        <item>@string/time_afternoon</item>
+        <item>@string/time_weekend</item>
+        <item>@string/time_shortproject</item>
+        <item>@string/time_longproject</item>
     </string-array>
     <string name="title_activity_navigation">NavigationActivity</string>
 
@@ -52,4 +52,17 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="image_compression_error">Image not working loads of badness</string>
+    <string name="cat_build">Build</string>
+    <string name="tags_job">One man job</string>
+    <string name="tags_coop">Coop event</string>
+    <string name="tags_pro">Professional service</string>
+    <string name="cat_clean">Clean</string>
+    <string name="cat_maintenance">Maintenance</string>
+    <string name="cat_trash">Trash</string>
+    <string name="cat_log">Logistics</string>
+    <string name="time_hour">An hour</string>
+    <string name="time_afternoon">Afternoon</string>
+    <string name="time_weekend">Weekend</string>
+    <string name="time_shortproject">Short project</string>
+    <string name="time_longproject">Long spanning project</string>
 </resources>
