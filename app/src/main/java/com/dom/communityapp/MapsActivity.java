@@ -323,11 +323,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         moveIcon(issue);
     }
 
-    private void addIcon(CommunityIssue issue) {
-        Marker marker = createMarker(issue);
-        this.mAdapterManager.addAdapter(marker, issue);
-
-    }
 
     private Marker createMarker(CommunityIssue issue) {
         MarkerOptions markerOptions = new MarkerOptions().
@@ -402,12 +397,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         if(mLastKnownLocation != null) {
             startLocationListening(mLastKnownLocation);
         }
-    }
-
-
-    private void startLocationListening(Location location) {
-        mFirebaseStorage.addLocationListener(this);
-        mFirebaseStorage.addLocationQuery(location, 2);
     }
 
     private void removeListenersAndObservers() {
