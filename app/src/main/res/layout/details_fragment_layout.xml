@@ -37,10 +37,10 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Short description"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/details_fragment_imView" />
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_imView"
+        tools:text="@string/create_event_txted_short" />
 
     <TextView
         android:id="@+id/details_fragment_long_description"
@@ -50,13 +50,13 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="long description"
-        android:textColor="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/details_fragment_short_description"
-        app:layout_constraintVertical_bias="0.098" />
+        app:layout_constraintVertical_bias="0.098"
+        tools:text="@string/create_event_txted_long" />
 
     <TextView
         android:id="@+id/details_fragment_category_txt"
@@ -95,6 +95,19 @@
         app:layout_constraintEnd_toEndOf="@+id/details_fragment_long_description"
         app:layout_constraintStart_toStartOf="@+id/details_fragment_long_description"
         app:layout_constraintTop_toBottomOf="@+id/details_fragment_category_txt" />
+
+    <Button
+        android:id="@+id/details_fragment_resolve_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_tags_txt"
+        tools:text="@string/btn_resolve" />
 
 
 </android.support.constraint.ConstraintLayout>

@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,10 +23,16 @@ public class DetailsFragment extends Fragment{
 
     private ImageView closeImage, detailsImage;
     private TextView destriptionLong,destriptionShort,category,tags,time;
+    private Button resolve;
 
 
-    FragmentManager Manager = getFragmentManager();
     private InfoWindowAdapter mInfoWindowAdapter;
+    private InfoWindowAdapterManager mInfoWindowAdapterManager;
+
+    public void addInfoWindowAdapterManager(InfoWindowAdapterManager adapterManager) {
+
+        this.mInfoWindowAdapterManager = adapterManager;
+    }
 
     public void addInfoWindowAdapter(InfoWindowAdapter adapter) {
 
@@ -49,6 +56,7 @@ public class DetailsFragment extends Fragment{
         category= (TextView) view.findViewById(R.id.details_fragment_category_txt);
         tags= (TextView) view.findViewById(R.id.details_fragment_tags_txt);
         time= (TextView) view.findViewById(R.id.details_fragment_time_txt);
+        resolve= (Button) view.findViewById(R.id.details_fragment_resolve_btn);
 
         closeImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,7 +64,17 @@ public class DetailsFragment extends Fragment{
                 mInfoWindowAdapter.removeDetailsFragment();
             }
             });
-        CommunityIssue issue = mInfoWindowAdapter.getIssue();
+
+        final CommunityIssue issue = mInfoWindowAdapter.getIssue();
+
+        resolve.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mInfoWindowAdapterManager.removeAdapterByIssue(issue);
+                mInfoWindowAdapter.removeDetailsFragment();
+
+            }
+        });
 
         detailsImage.setImageBitmap(issue.getIssueImage().getBitmap());
         destriptionLong.setText(issue.getLong_description());

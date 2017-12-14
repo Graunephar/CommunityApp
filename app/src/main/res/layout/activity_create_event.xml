@@ -42,7 +42,7 @@
                 android:ems="10"
                 android:hint="@string/create_event_txted_short"
                 android:inputType="textPersonName"
-                />
+                tools:text="@string/create_event_txted_short" />
 
             <EditText
                 android:id="@+id/Edittext_Long_despription"
@@ -52,7 +52,8 @@
                 android:hint="@string/create_event_txted_long"
                 android:inputType="textMultiLine"
                 android:selectAllOnFocus="true"
-                android:singleLine="false" />
+                android:singleLine="false"
+                tools:text="@string/create_event_txted_long" />
 
             <Spinner
                 android:id="@+id/spinner_tags"
@@ -95,7 +96,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/create_event_Btn" />
+                tools:text="@string/create_event_Btn" />
 
             <com.google.android.gms.maps.MapView
                 android:id="@+id/mapView_create_event"

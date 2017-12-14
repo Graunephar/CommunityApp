@@ -1,7 +1,4 @@
 <resources>
-    <string name="app_name">CommunityApp</string>
-    <string name="title_activity_maps">Map</string>
-    <string name="create_event_txted_short">Short description of your event</string>
     <string name="create_event_txted_long">An in depth description of your event</string>
     <string name="create_event_Btn">CREATE EVENT</string>
 
@@ -24,32 +21,20 @@
         <item>@string/time_shortproject</item>
         <item>@string/time_longproject</item>
     </string-array>
-    <string name="title_activity_navigation">NavigationActivity</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
     <string name="action_create">Create</string>
     <string name="action_map">Map</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
-    <string name="btn_get_txt">Add change listener</string>
-    <string name="btn_submit">submit txt to firebase db</string>
-    <string name="btn_upload">upload issueImage to firebase storage</string>
-    <string name="btn_img">select issueImage from phone</string>
-    <string name="title_activity_firebase_create_event_test_temp">
-        FirebaseCreateEventTestTempActivity
-    </string>
-    <string name="select_picture_title">Select Picture</string>
-    <string name="choose_image">Choose a crappy image</string>
-    <string name="noticication_channel_description">Lorterøv</string>
-    <string name="noticication_channel_name">Lorterøv</string>
-    <string name="wait_location_message">We have not been able to get a location. Please wait for your device to updater and try again</string>
+    <string name="choose_image">Choose an image</string>
+    <string name="noticication_channel_description" translatable="false">Lorterøv</string>
+    <string name="noticication_channel_name" translatable="false">Lorterøv</string>
+    <string name="wait_location_message">We have not been able to get a location. Please wait for your device to update and try again</string>
     <string name="wait_location_title">No location :(</string>
     <string name="no_location_permission_message">This app requires permission to function. If you do not give us permission to access your location this app will not function</string>
     <string name="no_location_permission_title">Are you really sure?</string>
-    <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="image_compression_error">Image not working loads of badness</string>
     <string name="cat_build">Build</string>
@@ -65,4 +50,12 @@
     <string name="time_weekend">Weekend</string>
     <string name="time_shortproject">Short project</string>
     <string name="time_longproject">Long spanning project</string>
+    <string name="create_event_txted_short" translatable="false">A short description of your event</string>
+    <string name="btn_get_txt" translatable="false">rter</string>
+    <string name="app_name">CommunityApp</string>
+    <string name="navigation_drawer_close">j</string>
+    <string name="yes">Yes</string>
+    <string name="btn_resolve">RESOLVE EVENT</string>
+    <string name="title_activity_maps" translatable="false">Maps</string>
+
 </resources>
