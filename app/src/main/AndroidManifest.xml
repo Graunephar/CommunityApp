@@ -38,10 +38,8 @@
             android:value="@string/google_maps_key" />
 
         <activity android:name=".CreateEventActivity" />
-        <activity
-            android:name=".MapsActivity">
+        <activity android:name=".MapsActivity">
             android:label="@string/title_activity_maps">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -52,6 +50,7 @@
         <service android:name=".LocationCommunityService" />
         <service android:name=".storage.FirebaseDatabaseStorageService" />
 
+        <activity android:name=".SettingActivity"></activity>
     </application>
 
 </manifest>

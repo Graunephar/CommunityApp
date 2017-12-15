@@ -6,10 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:layout_margin="20dp"
     android:background="#50b1c9"
     android:padding="10dp"
-    tools:layout_editor_absoluteY="81dp">
+    tools:layout_editor_absoluteX="80dp"
+    tools:layout_editor_absoluteY="169dp"
+    android:layout_margin="80dp">
 
     <ImageButton
         android:id="@+id/imageButton"
@@ -25,16 +26,16 @@
 
     <ImageView
         android:id="@+id/details_fragment_imView"
-        android:layout_width="176dp"
-        android:layout_height="153dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
-        android:maxHeight="200dp"
-        android:minHeight="100dp"
+        android:layout_marginTop="8dp"
+        android:maxHeight="300dp"
+        android:minHeight="300dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageButton"
         app:srcCompat="@android:drawable/ic_menu_camera" />
 
     <TextView
@@ -44,13 +45,14 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:padding="8dp"
         android:background="@android:color/white"
-        android:textColor="@android:color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/details_fragment_imView"
-        tools:text="@string/create_event_txted_short" />
+        tools:text="@string/create_event_txted_short"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        />
 
     <TextView
         android:id="@+id/details_fragment_long_description"
@@ -60,44 +62,43 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:background="@android:color/white"
-        android:padding="8dp"
         android:text="long description"
-        android:textColor="@android:color/black"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/details_fragment_short_description"
-        tools:text="@string/create_event_txted_long" />
+        tools:text="@string/create_event_txted_long"
+        android:padding="8dp"
+        android:textColor="@android:color/black"/>
 
     <TextView
         android:id="@+id/details_fragment_category_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
-        android:layout_marginEnd="200dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginEnd="244dp"
+        android:layout_marginTop="48dp"
         android:background="@android:color/white"
-        android:padding="8dp"
-        android:text="Categorys"
-        android:textColor="@android:color/black"
+        android:text="Category"
         app:layout_constraintEnd_toEndOf="@+id/details_fragment_long_description"
-        app:layout_constraintStart_toStartOf="@+id/details_fragment_long_description"
-        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description" />
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description"
+        android:layout_marginRight="244dp"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        />
 
     <TextView
         android:id="@+id/details_fragment_time_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="200dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginStart="224dp"
+        android:layout_marginTop="48dp"
         android:background="@android:color/white"
-        android:padding="8dp"
         android:text="Time"
-        android:textColor="@android:color/black"
-        app:layout_constraintEnd_toEndOf="@+id/details_fragment_long_description"
         app:layout_constraintStart_toStartOf="@+id/details_fragment_long_description"
-        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description" />
+        app:layout_constraintTop_toBottomOf="@+id/details_fragment_long_description"
+        android:layout_marginLeft="224dp"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        />
 
     <TextView
         android:id="@+id/details_fragment_tags_txt"
@@ -105,10 +106,10 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="104dp"
+        android:layout_marginTop="84dp"
         android:background="@android:color/white"
-        android:textColor="@android:color/black"
         android:padding="8dp"
+        android:textColor="@android:color/black"
         android:text="Tags"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -116,20 +117,17 @@
 
     <Button
         android:id="@+id/details_fragment_resolve_btn"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="18dp"
         android:textColor="@android:color/white"
         android:background="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/details_fragment_tags_txt"
-        android:text="@string/btn_resolve"/>
-
-
+        android:text="@string/btn_resolve" />
 
 
 </android.support.constraint.ConstraintLayout>

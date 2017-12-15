@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="tags">
+        <item>Rengøring</item>
+        <item>Sne</item>
+        <item>Arbejde</item>
+    </string-array>
+    <string-array name="categories">
+        <item>Lokalt</item>
+        <item>Rengøring</item>
+        <item>Arbejde</item>
+        <item>Affald</item>
+        <item>Vej</item>
+    </string-array>
+    <string-array name="Time_duration">
+        <item>Eftermiddag</item>
+        <item>Weekend</item>
+        <item>En time</item>
+        <item>Kort projekt</item>
+        <item>langvarende projekt</item>
+    </string-array>
+
+    <string name="app_name">NabolagsApp</string>
+    <string name="create_event_txted_long">En dybdegående beskrivelse af dit event</string>
+    <string name="create_event_Btn">OPRET EVENT</string>
+    <string name="navigation_drawer_close">Luk navigationsskuffe</string>
+    <string name="action_settings">Indstillinger</string>
+    <string name="action_create">Opret</string>
+    <string name="open">Åben</string>
+    <string name="choose_image">Vælg et billede</string>
+    <string name="wait_location_message">Er ikke i stand til at bestemme din lokation. Vent venligst på at din enhed opdaterer din lokation og prøv igen.</string>
+    <string name="wait_location_title">Ingen lokation :(</string>
+    <string name="no_location_permission_message">Denne app kræver tilladelse for at fungere. Hvis du ikke giver adgang til din lokation, vil denne app ikke fungere.</string>
+    <string name="no_location_permission_title">Er du helt sikker?</string>
+    <string name="no">Nej</string>
+    <string name="yes">Ja</string>
+    <string name="btn_resolve">AFSLUT EVENT</string>
+    <string name="close">Luk</string>
+</resources>

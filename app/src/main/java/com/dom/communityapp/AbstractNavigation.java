@@ -100,7 +100,11 @@ public abstract class AbstractNavigation extends AppCompatActivity
             finish();
 
         } else if (id == R.id.action_settings ) {
-            Log.d(logTag, "OPEN DETAILS");
+            Log.d(logTag, "OPEN Setting");
+            Intent intent = new Intent(this, SettingActivity.class);
+            startActivity(intent);
+            finish();
+            ;
 
         } else if (id == R.id.action_create) {
             Log.d(logTag, "OPEN CREATE");

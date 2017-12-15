@@ -26,10 +26,15 @@
             <ImageView
                 android:id="@+id/imageView_Event"
                 android:layout_width="match_parent"
-                android:layout_height="227dp"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
+                android:maxHeight="50px"
+                android:maxWidth="50px"
+                android:minHeight="50px"
+                android:minWidth="50px"
+                android:nestedScrollingEnabled="true"
                 android:src="@android:drawable/ic_menu_camera"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -40,39 +45,39 @@
                 android:id="@+id/Edittext_Short_despription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/white"
                 android:ems="10"
                 android:hint="@string/create_event_txted_short"
                 android:inputType="textPersonName"
-                tools:text="@string/create_event_txted_short"
                 android:padding="8dp"
-                android:background="@android:color/white"
-                />
+                tools:text="@string/create_event_txted_short" />
 
             <EditText
                 android:id="@+id/Edittext_Long_despription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/white"
                 android:ems="10"
                 android:hint="@string/create_event_txted_long"
                 android:inputType="textMultiLine"
+                android:padding="8dp"
+                android:paddingTop="10dp"
                 android:selectAllOnFocus="true"
                 android:singleLine="false"
-                tools:text="@string/create_event_txted_long"
-                android:padding="8dp"
-                android:background="@android:color/white"
-                />
+                android:layout_marginTop="10dp"
+                tools:text="@string/create_event_txted_long" />
 
             <Spinner
                 android:id="@+id/spinner_tags"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginStart="40dp"
                 android:layout_marginTop="36dp"
-                android:minWidth="20dp"
-                android:visibility="visible"
-                android:padding="8dp"
                 android:background="@android:color/white"
+                android:minWidth="20dp"
+                android:padding="8dp"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="@+id/textView_Long_description"
                 app:layout_constraintStart_toStartOf="@+id/textView_Long_description"
                 app:layout_constraintTop_toBottomOf="@+id/textView_Long_description" />
@@ -81,14 +86,13 @@
                 android:id="@+id/spinner_categories"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginStart="40dp"
                 android:layout_marginTop="36dp"
-                android:padding="8dp"
                 android:background="@android:color/white"
+                android:padding="8dp"
                 android:tooltipText="'dumt'"
                 android:visibility="visible"
-
                 tools:layout_editor_absoluteX="217dp"
                 tools:layout_editor_absoluteY="289dp" />
 
@@ -96,31 +100,36 @@
                 android:id="@+id/spinner_time_required"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginStart="40dp"
                 android:layout_marginTop="36dp"
+                android:background="@android:color/white"
+                android:padding="8dp"
                 android:tooltipText="select"
                 android:visibility="visible"
-                android:padding="8dp"
-                android:background="@android:color/white"/>
+                android:gravity="center"
+                />
 
             <Button
                 android:id="@+id/create_event_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                tools:text="@string/create_event_Btn"
-                android:textColor="@android:color/white"
-                android:padding="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 android:background="@color/colorPrimary"
-                android:text="@string/create_event_Btn" />
+                android:text="@string/create_event_Btn"
+                android:textColor="@android:color/white"
+                tools:text="@string/create_event_Btn" />
 
             <com.google.android.gms.maps.MapView
                 android:id="@+id/mapView_create_event"
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
                 android:paddingBottom="8dp"
-                android:paddingTop="8dp" />
+                android:paddingTop="8dp"
+                android:layout_marginTop="40dp"
+                />
 
         </LinearLayout>
     </ScrollView>
