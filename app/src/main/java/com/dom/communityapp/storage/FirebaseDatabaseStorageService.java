@@ -53,7 +53,6 @@ import id.zelory.compressor.Compressor;
 public class FirebaseDatabaseStorageService extends Service {
 
     private List<IssueLocationListener> mLocationListeners;
-    private ArrayList<FirebaseObserver> observers;
 
     private final long FIVE_MEGABYTES = 1024 * 1024 * 5;
 
@@ -83,70 +82,11 @@ public class FirebaseDatabaseStorageService extends Service {
         DatabaseReference georeference = mFirebaseRootReference.child("coordinates");
         this.mGeoFire = new GeoFire(georeference);
 
-        this.observers = new ArrayList<>();
-        attachListeners();
+        //attachListeners();
         this.mLocationListeners = new ArrayList<>();
 
         this.mBinder = new LocalBinder();
 
-    }
-
-    private void attachListeners() {
-        mFirebaseIssueReference.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
-                final CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
-                issue.setFirebaseID(dataSnapshot.getKey());
-                final IssueImage image = issue.getIssueImage();
-
-                if (image != null) {
-
-                    StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
-
-                    httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                        @Override
-                        public void onSuccess(byte[] bytes) {
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                            image.setBitmap(bitmap);
-                            for (FirebaseObserver observer : observers) {
-                                observer.imageDownloaded(issue);
-                            }
-                        }
-                    });
-
-                }
-
-                for (FirebaseObserver observer : observers) {
-                    observer.onNewIssue(issue);
-                }
-            }
-
-            //TODO How many of these should be used?
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-    }
-
-    public void addObserver(FirebaseObserver observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(FirebaseObserver observer) {
-        observers.remove(observer);
     }
 
     public void addLocationListener(IssueLocationListener listener) {
@@ -201,23 +141,6 @@ public class FirebaseDatabaseStorageService extends Service {
         GeoLocation location = new GeoLocation(latitude, longitude);
         this.mGeoFire.setLocation(id, location);
 
-    }
-
-    //REF: https://theengineerscafe.com/save-and-retrieve-data-firebase-android/
-    public void addChangeListener() {
-        mFirebaseIssueReference.child("value").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (FirebaseObserver observer : observers) {
-                    observer.onDataChanged(dataSnapshot.getValue(String.class));
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
     }
 
     private void checkFirebaseSignInAndDoStuff(Uri filepath, FirebaseConsumer<Uri> consumer) {
@@ -302,6 +225,7 @@ public class FirebaseDatabaseStorageService extends Service {
                         @Override
                         public void accept(CommunityIssue subject, IssueLocationListener callback) {
                             callback.newIssue(subject);
+                            tryToGetImageAndSendSeperately(subject, callback);
                         }
                     });
                 }
@@ -339,6 +263,25 @@ public class FirebaseDatabaseStorageService extends Service {
                 // Toast.makeText(mContext.getApplicationContext(), "onGeoQueryError" + error, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void tryToGetImageAndSendSeperately(final CommunityIssue issue, final IssueLocationListener callback) {
+        final IssueImage image = issue.getIssueImage();
+
+        if (image != null) {
+
+            StorageReference httpsReference = FirebaseStorage.getInstance().getReferenceFromUrl(image.getImage_URL());
+
+            httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    image.setBitmap(bitmap);
+                    callback.onImageDownloaded(issue);
+                }
+            });
+
+        }
     }
 
     private void attachListenerToNewIssue(String firebaseId, final LatLng location, final IssueLocationListener listener, final FirebaseBiConsumer<CommunityIssue, IssueLocationListener> callback) {

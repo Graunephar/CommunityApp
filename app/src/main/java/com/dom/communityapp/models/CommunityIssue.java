@@ -14,6 +14,41 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable {
 
+
+    public enum IssueTag {
+        ONEMANJOB("One Man Job"),
+        CCOP("Cooporation"),
+        PROF("Professional");
+
+        private String tag;
+
+        IssueTag(String tag) {
+            this.tag = tag;
+        }
+
+        public String tag() {
+            return this.tag;
+        }
+    }
+
+    public enum IssueTime {
+        HOUR("hour"),
+        EFTERNOON("efternoon"),
+        WEEKEND("weekend"),
+        SHORTPROJECT("shortproject"),
+        LONGPROJECT("longproject");
+
+        private String time;
+
+        IssueTime(String time) {
+            this.time = time;
+        }
+
+        public String time() {
+            return time;
+        }
+    }
+
     private IssueImage issueImage;
 
     @Exclude
@@ -27,50 +62,43 @@ public class CommunityIssue implements Serializable {
 
     private List<String> comments;
 
-    private String tag;
+    private IssueTag tag;
 
-    private String timed_duration;
+    private IssueTime timed_duration;
 
-    private String category;
+    private IssueCategory category;
 
     @Exclude
     private String firebaseID;
 
-    //Default constructor required by firebase, just like the getters and setters for all the things
     public CommunityIssue() {
+
     }
 
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage) {
-        this.category = cat_text;
-        this.tag = tag_text;
-        this.timed_duration = time_text;
-        this.short_description = sshort;
-        this.long_description = llong;
-        this.issueImage = issueImage;
-    }
-
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text, IssueImage issueImage, LatLng coordinate) {
-        this.category = cat_text;
-        this.tag = tag_text;
-        this.timed_duration = time_text;
-        this.short_description = sshort;
-        this.long_description = llong;
+    //Default constructor required by firebase, just like the getters and setters for all the things
+    public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueImage issueImage, LatLng coordinate) {
+        this.category = category;
+        this.short_description = shortdescription;
+        this.long_description = longdescription;
         this.issueImage = issueImage;
         this.coordinate = coordinate;
     }
 
-    public CommunityIssue(String sshort, String llong, String cat_text, String tag_text, String time_text) {
-        this.category = cat_text;
-        this.tag = tag_text;
-        this.timed_duration = time_text;
-        this.short_description = sshort;
-        this.long_description = llong;
+    public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueTag tag, IssueTime issueTime, IssueImage issueImage, LatLng coordinate) {
+        this.category = category;
+        this.tag = tag;
+        this.timed_duration = issueTime;
+        this.short_description = shortdescription;
+        this.long_description = longdescription;
+        this.issueImage = issueImage;
+        this.coordinate = coordinate;
     }
+
+
 
     public CommunityIssue(String key) {
         this.firebaseID = key;
     }
-
 
     @Exclude
     public LatLng getCoordinate() {
@@ -114,27 +142,42 @@ public class CommunityIssue implements Serializable {
         this.comments = comments;
     }
 
-    public String getTag() {
+    public IssueTag getTag() {
         return tag;
     }
 
-    public void setTag(String tag) {
+    public void setTag(IssueTag tag) {
         this.tag = tag;
     }
 
-    public String getTimed_duration() {
+    public IssueTime getTimed_duration() {
         return timed_duration;
     }
 
-    public void setTimed_duration(String timed_duration) {
+    public void setTimed_duration(IssueTime timed_duration) {
         this.timed_duration = timed_duration;
     }
 
-    public String getCategory() {
-        return category;
+   /* @Exclude
+    public Integer transLateCategoryToRessourceID() {
+        switch (this.category) {
+            case MAINTANANCE: return R.string.cat_maintenance;
+            case CLEAN: return R.string.cat_clean;
+            case BUILD: return R.string.cat_build;
+            case LOGISTIC: return R.string.cat_log;
+            case TRASH: return R.string.cat_trash;
+        }
+
+        return null;
+    }*/
+
+    public IssueCategory getCategory() {
+
+        return this.category;
+
     }
 
-    public void setCategory(String category) {
+    public void setCategory(IssueCategory category) {
         this.category = category;
     }
 
@@ -162,23 +205,24 @@ public class CommunityIssue implements Serializable {
 
         //final String category = getCategory();
         int iconresult = 0;
-        switch (category) {
-            case "Cleaning":
+        switch (category.getIssueCategoryEnum()) {
+            case CLEAN:
                 iconresult = R.drawable.ic_cleaning_category;
                 break;
-            case "Work":
+            case MAINTANANCE:
                 iconresult = R.drawable.ic_work_category;
                 break;
-            case "Local":
+            case BUILD:
                 iconresult = R.drawable.ic_local_category;
                 break;
-            case "Trash":
+            case TRASH:
                 iconresult = R.drawable.ic_trash_category;
                 break;
-            case "Road":
+            case LOGISTIC:
                 iconresult = R.drawable.ic_road_category;
                 break;
         }
+
         return iconresult;
     }
 

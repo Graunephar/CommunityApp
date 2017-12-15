@@ -13,4 +13,6 @@ public interface IssueLocationListener {
 
     void movedIssue(CommunityIssue issue);
 
+    void onImageDownloaded(CommunityIssue issue);
+
 }

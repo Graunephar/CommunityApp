@@ -12,7 +12,6 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -25,13 +24,13 @@ import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
-import com.dom.communityapp.storage.FirebaseObserver;
 import com.dom.communityapp.storage.IssueLocationListener;
 import com.dom.communityapp.ui.InfoWindowAdapterManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -42,7 +41,7 @@ import java.util.HashMap;
 
 import butterknife.ButterKnife;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, FirebaseObserver, LocationListener, IssueLocationListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, LocationListener, IssueLocationListener {
 
 
     //Map related stuff
@@ -278,45 +277,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
      * Firebase service callbacks - and storage stuff
      **/
 
-    @Override
-    public void onDataChanged(String value) {
-
-    }
-
-    @Override
-    public void getImage(Uri downloadUrl) {
-
-    }
-
-    @Override
-    public void onNewIssue(CommunityIssue issue) {
-
-    }
-
-    @Override
-    public void imageDownloaded(CommunityIssue incomingissue) {
-
-
-        CommunityIssue newissue = null;
-
-        if (mIssues.containsKey(incomingissue.getFirebaseID())) {
-            newissue = mIssues.get(incomingissue.getFirebaseID());
-;
-        } else {
-            newissue = incomingissue;
-            newIssue(incomingissue);
-        }
-
-        Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
-        newissue.getIssueImage().setBitmap(issuebitmap);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-    }
-
-
     private void startLocationListening(Location location) {
         mFirebaseStorageService.addLocationListener(this);
         mFirebaseStorageService.addLocationQuery(location, 2);
@@ -340,12 +300,37 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         moveIcon(issue);
     }
 
+    @Override
+    public void onImageDownloaded(CommunityIssue incomingissue) {
+
+
+        CommunityIssue newissue = null;
+
+        if (mIssues.containsKey(incomingissue.getFirebaseID())) {
+            newissue = mIssues.get(incomingissue.getFirebaseID());
+
+            Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
+            newissue.getIssueImage().setBitmap(issuebitmap);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
+        } else {
+
+            //TODO ADD to halløj
+        }
+
+
+    }
+
 
     private Marker createMarker(CommunityIssue issue) {
         MarkerOptions markerOptions = new MarkerOptions().
                 position(issue.getCoordinate());
 
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(issue.getIcon()));
+        BitmapDescriptor bitmapdescriptor = BitmapDescriptorFactory.fromResource(issue.getIcon());
+        markerOptions.icon(bitmapdescriptor);
         Marker currentMarker = mMap.addMarker(markerOptions);
 
         return currentMarker;
@@ -392,7 +377,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
                 mStorageServiceBound = true;
 
-                addListenersAndObservers();
+                addListener();
 
             }
 
@@ -409,15 +394,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         };
     }
 
-    private void addListenersAndObservers() {
-        mFirebaseStorageService.addObserver(this);
+    private void addListener() {
         if(mLastKnownLocation != null) {
             startLocationListening(mLastKnownLocation);
         }
-    }
-
-    private void removeListenersAndObservers() {
-        mFirebaseStorageService.removeObserver(this);
     }
 
 

@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -21,6 +23,8 @@ import android.widget.Toast;
 
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
+import com.dom.communityapp.models.IssueCategory;
+import com.dom.communityapp.models.IssueDropDownTranslator;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.models.CommunityIssue;
@@ -75,6 +79,10 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     private boolean mLocationServiceBound;
     private LocationCommunityService mLocationService;
 
+    private IssueCategory mPickedCategory;
+    private CommunityIssue.IssueTag mPickedTag;
+    private CommunityIssue.IssueTime mPickedTime;
+
     //Request codes
     // private static final int CAMERA_REQUEST_CODE = 11;
     private boolean mUnpushedLocationWaiting = false;
@@ -100,24 +108,63 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             viewer.setImageBitmap(mTakenImage);
         }
 
+/*
 
         //Adapter for tag_spin
-        ArrayAdapter<String> tag_spin_adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.tags));
+        ArrayAdapter<CommunityIssue.IssueTag> tag_spin_adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, CommunityIssue.IssueTag.values());
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tag_spin.setAdapter(tag_spin_adapter);
+        tag_spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mPickedTag = (CommunityIssue.IssueTag) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                mPickedTag = null;
+            }
+        });*/
+
+        IssueDropDownTranslator translator = new IssueDropDownTranslator(this);
+        mPickedCategory = new IssueCategory(translator);
 
         //Adapter for cat_spin
-        ArrayAdapter<String> cat_spin_adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.categories));
-        tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<IssueCategory> cat_spin_adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, mPickedCategory.generateCatArray());
+        cat_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         cat_spin.setAdapter(cat_spin_adapter);
 
+        cat_spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mPickedCategory = (IssueCategory) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                mPickedCategory = null;
+            }
+        });
+/*
         //Adapter for time_spin
-        ArrayAdapter<String> time_spin_adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.Time_duration));
-        tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<CommunityIssue.IssueTime> time_spin_adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, CommunityIssue.IssueTime.values());
+        time_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
+
+        time_spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mPickedTime = (CommunityIssue.IssueTime) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                mPickedTime = null;
+            }
+        });*/
 
         EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
 
@@ -485,22 +532,19 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private void tryToUploadIssue() {
         if (mStorageServiceBound) {
+            if (!(mTakenImage == null || mPickedCategory == null)){
 
-            String sshort = short_description.getText().toString();
-            String llong = long_description.getText().toString();
-            String cat_text = cat_spin.getSelectedItem().toString();
-            String tag_text = tag_spin.getSelectedItem().toString();
-            String time_text = time_spin.getSelectedItem().toString();
+                String sshort = short_description.getText().toString();
+                String llong = long_description.getText().toString();
 
-            IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
+                IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
-            double latitude = mLastKnownLocation.getLatitude();
-            double longitude = mLastKnownLocation.getLongitude();
-            LatLng latlng = new LatLng(latitude, longitude);
+                double latitude = mLastKnownLocation.getLatitude();
+                double longitude = mLastKnownLocation.getLongitude();
+                LatLng latlng = new LatLng(latitude, longitude);
 
-            CommunityIssue issue = new CommunityIssue(sshort, llong, cat_text, tag_text, time_text, issueImage, latlng);
+                CommunityIssue issue = new CommunityIssue(sshort, llong, mPickedCategory, issueImage, latlng);
 
-            if (!(mTakenImage == null)){
                 mStorageService.saveIssueAndImageToDatabase(issue, this);
 
                 //start map after pushing create event
