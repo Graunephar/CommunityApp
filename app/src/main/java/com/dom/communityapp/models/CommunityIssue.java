@@ -29,7 +29,7 @@ public class CommunityIssue implements Serializable {
 
     private IssueTag tag;
 
-    private IssueTime timed_duration;
+    private IssueTime time;
 
     private IssueCategory category;
 
@@ -44,7 +44,7 @@ public class CommunityIssue implements Serializable {
     public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueTag tag, IssueTime issueTime, IssueImage issueImage, LatLng coordinate) {
         this.category = category;
         this.tag = tag;
-        this.timed_duration = issueTime;
+        this.time = issueTime;
         this.short_description = shortdescription;
         this.long_description = longdescription;
         this.issueImage = issueImage;
@@ -107,26 +107,13 @@ public class CommunityIssue implements Serializable {
         this.tag = tag;
     }
 
-    public IssueTime getTimed_duration() {
-        return timed_duration;
+    public IssueTime getTime() {
+        return time;
     }
 
-    public void setTimed_duration(IssueTime timed_duration) {
-        this.timed_duration = timed_duration;
+    public void setTime(IssueTime time) {
+        this.time = time;
     }
-
-   /* @Exclude
-    public Integer transLateCategoryToRessourceID() {
-        switch (this.category) {
-            case MAINTANANCE: return R.string.cat_maintenance;
-            case CLEAN: return R.string.cat_clean;
-            case BUILD: return R.string.cat_build;
-            case LOGISTIC: return R.string.cat_log;
-            case TRASH: return R.string.cat_trash;
-        }
-
-        return null;
-    }*/
 
     public IssueCategory getCategory() {
 
@@ -195,5 +182,12 @@ public class CommunityIssue implements Serializable {
     @Override
     public int hashCode() {
         return firebaseID.hashCode();
+    }
+
+    @Exclude
+    public void attachTranslators(IssueDropDownTranslator translator) {
+        this.category.setTranslator(translator);
+        this.tag.setTranslator(translator);
+        this.time.setTranslator(translator);
     }
 }

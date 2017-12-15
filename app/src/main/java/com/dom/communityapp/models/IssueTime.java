@@ -10,6 +10,11 @@ import java.util.ArrayList;
 
 public class IssueTime {
 
+    @Exclude
+    public void setTranslator(IssueDropDownTranslator translator) {
+        this.translator = translator;
+    }
+
     public enum Time {
         HOUR,
         EFTERNOON,

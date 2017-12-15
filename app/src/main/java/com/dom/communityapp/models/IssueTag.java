@@ -11,6 +11,11 @@ import java.util.ArrayList;
 public class IssueTag {
 
 
+    @Exclude
+    public void setTranslator(IssueDropDownTranslator translator) {
+        this.translator = translator;
+    }
+
     public enum Tag {
         ONEMANJOB,
         COOP,

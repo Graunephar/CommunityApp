@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.View;
 
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.storage.IssueResolver;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.common.collect.BiMap;
@@ -18,15 +19,17 @@ import java.util.Iterator;
  * Created by mrl on 13/12/2017.
  */
 
-public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter {
+public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter{
     private final Activity mActivity;
     private final HashMap<CommunityIssue, Marker> mIssueAdapterReference;
+    private final IssueResolver mIssueResolver;
     private BiMap<Marker, InfoWindowAdapter> mAdapters;
 
-    public InfoWindowAdapterManager(Activity activity) {
+    public InfoWindowAdapterManager(Activity activity, IssueResolver resolver) {
         this.mAdapters = HashBiMap.create();
         this.mActivity = activity;
         this.mIssueAdapterReference = new HashMap<>();
+        this.mIssueResolver = resolver;
     }
 
     @Override
@@ -42,7 +45,7 @@ public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter {
     }
 
     public void addAdapter(Marker key, CommunityIssue issue) {
-        InfoWindowAdapter adapter = new InfoWindowAdapter(mActivity, issue);
+        InfoWindowAdapter adapter = new InfoWindowAdapter(mActivity, issue, mIssueResolver);
         mIssueAdapterReference.put(issue, key);
         mAdapters.put(key, adapter);
     }
@@ -51,7 +54,7 @@ public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter {
         Marker marker = mIssueAdapterReference.get(issue);
         mAdapters.remove(marker);
         mIssueAdapterReference.remove(issue);
-        marker.remove();
+        //marker.remove();
     }
 
     public void changeMarker(CommunityIssue issue, Marker newmarker) {

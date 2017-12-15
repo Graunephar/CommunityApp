@@ -291,9 +291,13 @@ public class FirebaseDatabaseStorageService extends Service {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) { // At instansation gives all data, changes are receiced herafter
                 CommunityIssue issue = dataSnapshot.getValue(CommunityIssue.class);
+
+                if(issue != null) {
                 issue.setFirebaseID(dataSnapshot.getKey());
                 issue.setCoordinate(location);
                 callback.accept(issue, listener);
+
+                }
             }
 
             @Override
@@ -301,6 +305,15 @@ public class FirebaseDatabaseStorageService extends Service {
                 //TODO what to do?
             }
         });
+    }
+
+    public void removeIssue(CommunityIssue issue) {
+        DatabaseReference dbref = mFirebaseIssueReference.child(issue.getFirebaseID());
+        dbref.removeValue();
+        mGeoFire.removeLocation(issue.getFirebaseID());
+        String issueurl = issue.getIssueImage().getImage_URL();
+        StorageReference photoRef = mFirebaseStorageReference.child(issueurl);
+        photoRef.delete();
     }
 
     private interface FirebaseFileUploadCallback {

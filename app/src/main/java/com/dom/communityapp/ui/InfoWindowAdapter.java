@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.dom.communityapp.R;
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.storage.IssueResolver;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.model.Marker;
 
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
+    private final IssueResolver mIssueResolver;
     private Activity mActivity;
     private final CommunityIssue mIssue;
     private View mView;
@@ -27,23 +29,20 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
     private ImageView iconView;
 
-    public InfoWindowAdapter(Activity context, CommunityIssue issue) {
+    public InfoWindowAdapter(Activity context, CommunityIssue issue, IssueResolver resolver) {
 
         this.mIssue = issue;
         this.mActivity = context;
         this.mView = mActivity.getLayoutInflater().inflate(R.layout.bubble_marker_layout, null);
         iconView = (ImageView) mView.findViewById(R.id.marker_icon);
+        this.mIssueResolver = resolver;
 
-    }
-
-    public InfoWindowAdapter(CommunityIssue issue) {
-        this.mIssue = issue;
     }
 
 
     @Override
     public View getInfoWindow(Marker marker) {
-        return null;
+        return mView;
     }
 
     @Override
@@ -103,4 +102,9 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     public int hashCode() {
         return mIssue.hashCode();
     }
+
+    public void resolveIssue(CommunityIssue issue) {
+            mIssueResolver.resolve(issue);
+    }
+
 }

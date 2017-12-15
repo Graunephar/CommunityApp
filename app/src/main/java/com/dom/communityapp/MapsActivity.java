@@ -25,6 +25,7 @@ import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
 import com.dom.communityapp.storage.IssueLocationListener;
+import com.dom.communityapp.storage.IssueResolver;
 import com.dom.communityapp.ui.InfoWindowAdapterManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,7 +42,7 @@ import java.util.HashMap;
 
 import butterknife.ButterKnife;
 
-public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, LocationListener, IssueLocationListener {
+public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, LocationListener, IssueLocationListener, IssueResolver {
 
 
     //Map related stuff
@@ -173,7 +174,7 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
-        mAdapterManager = new InfoWindowAdapterManager(this);
+        mAdapterManager = new InfoWindowAdapterManager(this, this);
         mMap.setInfoWindowAdapter(mAdapterManager);
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
 
@@ -434,8 +435,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     private void addIcon(CommunityIssue issue) {
-        Marker marker = createMarker(issue);
-        this.mAdapterManager.addAdapter(marker, issue);
+        if(issue != null) {
+            Marker marker = createMarker(issue);
+            this.mAdapterManager.addAdapter(marker, issue);
+        }
     }
 
     private ServiceConnection createNewLocationServiceConnection() {
@@ -481,4 +484,12 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
 
+    @Override
+    public void resolve(CommunityIssue issue) {
+        mIssues.remove(issue);
+        mAdapterManager.removeAdapterByIssue(issue);
+        if(mStorageServiceBound) {
+            mFirebaseStorageService.removeIssue(issue);
+        }
+    }
 }

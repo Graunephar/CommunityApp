@@ -1,7 +1,7 @@
 package com.dom.communityapp.ui;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.dom.communityapp.R;
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.IssueDropDownTranslator;
 
 
 /**
@@ -27,12 +28,6 @@ public class DetailsFragment extends Fragment{
 
 
     private InfoWindowAdapter mInfoWindowAdapter;
-    private InfoWindowAdapterManager mInfoWindowAdapterManager;
-
-    public void addInfoWindowAdapterManager(InfoWindowAdapterManager adapterManager) {
-
-        this.mInfoWindowAdapterManager = adapterManager;
-    }
 
     public void addInfoWindowAdapter(InfoWindowAdapter adapter) {
 
@@ -52,11 +47,11 @@ public class DetailsFragment extends Fragment{
         closeImage = (ImageView) view.findViewById(R.id.imageButton);
         detailsImage = (ImageView) view.findViewById(R.id.details_fragment_imView);
         destriptionLong = (TextView) view.findViewById(R.id.details_fragment_long_description);
-        destriptionShort= (TextView) view.findViewById(R.id.details_fragment_short_description);
-        category= (TextView) view.findViewById(R.id.details_fragment_category_txt);
-        tags= (TextView) view.findViewById(R.id.details_fragment_tags_txt);
-        time= (TextView) view.findViewById(R.id.details_fragment_time_txt);
-        resolve= (Button) view.findViewById(R.id.details_fragment_resolve_btn);
+        destriptionShort = (TextView) view.findViewById(R.id.details_fragment_short_description);
+        category = (TextView) view.findViewById(R.id.details_fragment_category_txt);
+        tags = (TextView) view.findViewById(R.id.details_fragment_tags_txt);
+        time = (TextView) view.findViewById(R.id.details_fragment_time_txt);
+        resolve = (Button) view.findViewById(R.id.details_fragment_resolve_btn);
 
         closeImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,18 +65,22 @@ public class DetailsFragment extends Fragment{
         resolve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mInfoWindowAdapterManager.removeAdapterByIssue(issue);
+                mInfoWindowAdapter.resolveIssue(issue);
                 mInfoWindowAdapter.removeDetailsFragment();
 
             }
         });
 
-        detailsImage.setImageBitmap(issue.getIssueImage().getBitmap());
+        IssueDropDownTranslator translator = new IssueDropDownTranslator(view.getContext());
+        issue.attachTranslators(translator);
+
+        Bitmap bitmap = issue.getIssueImage().getBitmap();
+        if(bitmap != null) detailsImage.setImageBitmap(bitmap);
         destriptionLong.setText(issue.getLong_description());
         destriptionShort.setText(issue.getShort_description());
-        category.setText(issue.getCategory());
-        tags.setText(issue.getTag());
-        time.setText(issue.getTimed_duration());
+        category.setText(issue.getCategory().toString());
+        tags.setText(issue.getTag().toString());
+        time.setText(issue.getTime().toString());
 
 
 
