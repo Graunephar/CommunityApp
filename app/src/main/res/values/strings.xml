@@ -37,7 +37,7 @@
     <string name="no_location_permission_title">Are you really sure?</string>
     <string name="no">No</string>
     <string name="image_compression_error">Image not working loads of badness</string>
-    <string name="cat_build">Build</string>
+    <string name="cat_build" translatable="false">Build</string>
     <string name="tags_job">One man job</string>
     <string name="tags_coop">Coop event</string>
     <string name="tags_pro">Professional service</string>
@@ -47,15 +47,17 @@
     <string name="cat_log">Logistics</string>
     <string name="time_hour">An hour</string>
     <string name="time_afternoon">Afternoon</string>
-    <string name="time_weekend">Weekend</string>
+    <string name="time_weekend" translatable="false">Weekend</string>
     <string name="time_shortproject">Short project</string>
     <string name="time_longproject">Long spanning project</string>
-    <string name="create_event_txted_short" translatable="false">A short description of your event</string>
+    <string name="create_event_txted_short">A short description of your event</string>
     <string name="btn_get_txt" translatable="false">rter</string>
     <string name="app_name">CommunityApp</string>
     <string name="navigation_drawer_close">j</string>
     <string name="yes">Yes</string>
     <string name="btn_resolve">RESOLVE EVENT</string>
-    <string name="title_activity_maps" translatable="false">Maps</string>
+    <string name="title_activity_maps">Maps</string>
+    <string name="settings_btn_txt">Set curret position to HOME</string>
+    <string name="seekbar_description">Show Events within Distance</string>
 
 </resources>

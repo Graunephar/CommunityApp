@@ -37,4 +37,21 @@
     <string name="yes">Ja</string>
     <string name="btn_resolve">AFSLUT EVENT</string>
     <string name="close">Luk</string>
+    <string name="tags_job">En mands arbejde</string>
+    <string name="tags_coop">Samarbejde Event</string>
+    <string name="tags_pro">Proffecionelt Arbejde</string>
+    <string name="cat_clean">Rengøring</string>
+    <string name="cat_maintenance">Vedligeholdelse</string>
+    <string name="cat_trash">Affald</string>
+    <string name="cat_log">Logistik</string>
+    <string name="time_hour">En time</string>
+    <string name="time_afternoon">Eftermiddag</string>
+    <string name="time_shortproject">Kort projekt</string>
+    <string name="time_longproject">Langtids projekt</string>
+    <string name="create_event_txted_short" translatable="false">En kort Beskrivelse af dit Event</string>
+    <string name="title_activity_maps">Kort</string>
+    <string name="image_compression_error">Billede virker ikke</string>
+    <string name="action_map">Kort</string>
+    <string name="settings_btn_txt">Sæt nuværende position til HJEM</string>
+    <string name="seekbar_description">Vis Events indenfor afstand</string>
 </resources>
