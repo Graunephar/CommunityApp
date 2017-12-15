@@ -286,6 +286,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     @Override
     public void issueRemoved(CommunityIssue issue) {
+       if(mIssues.containsKey(issue.getFirebaseID())) {
+           removeIssue(issue);
+       }
+
+    }
+
+    private void removeIssue(CommunityIssue issue) {
         mIssues.remove(issue.getFirebaseID());
         mAdapterManager.removeAdapterByIssue(issue);
     }
@@ -304,19 +311,15 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     @Override
     public void onImageDownloaded(CommunityIssue incomingissue) {
 
-
-        CommunityIssue newissue = null;
-
         if (mIssues.containsKey(incomingissue.getFirebaseID())) {
-            newissue = mIssues.get(incomingissue.getFirebaseID());
-
+            CommunityIssue existingissue = mIssues.get(incomingissue.getFirebaseID());
             Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
-            newissue.getIssueImage().setBitmap(issuebitmap);
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             byte[] byteArray = stream.toByteArray();
             Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
             Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
+            existingissue.getIssueImage().setBitmap(croppedbitmap);
         } else {
 
             //TODO ADD to halløj
@@ -325,6 +328,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
+    @Override
+    public void resolve(CommunityIssue issue) {
+        removeIssue(issue);
+        if(mStorageServiceBound) {
+            mFirebaseStorageService.removeIssue(issue);
+        }
+    }
 
     private Marker createMarker(CommunityIssue issue) {
         MarkerOptions markerOptions = new MarkerOptions().
@@ -480,16 +490,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
                 startLocationListening(location);
             }
             mFirstLocation = false;
-        }
-    }
-
-
-    @Override
-    public void resolve(CommunityIssue issue) {
-        mIssues.remove(issue);
-        mAdapterManager.removeAdapterByIssue(issue);
-        if(mStorageServiceBound) {
-            mFirebaseStorageService.removeIssue(issue);
         }
     }
 }

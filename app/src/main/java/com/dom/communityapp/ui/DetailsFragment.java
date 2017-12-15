@@ -65,14 +65,13 @@ public class DetailsFragment extends Fragment{
         resolve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mInfoWindowAdapter.resolveIssue(issue);
                 mInfoWindowAdapter.removeDetailsFragment();
+                mInfoWindowAdapter.resolveIssue(issue);
 
             }
         });
 
-        IssueDropDownTranslator translator = new IssueDropDownTranslator(view.getContext());
-        issue.attachTranslators(translator);
+        issue.attachTranslators(view.getContext());
 
         Bitmap bitmap = issue.getIssueImage().getBitmap();
         if(bitmap != null) detailsImage.setImageBitmap(bitmap);

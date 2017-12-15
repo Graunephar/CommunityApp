@@ -1,6 +1,8 @@
 package com.dom.communityapp.models;
 
 
+import android.content.Context;
+
 import com.dom.communityapp.R;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
@@ -185,7 +187,8 @@ public class CommunityIssue implements Serializable {
     }
 
     @Exclude
-    public void attachTranslators(IssueDropDownTranslator translator) {
+    public void attachTranslators(Context context) {
+        IssueDropDownTranslator translator = new IssueDropDownTranslator(context);
         this.category.setTranslator(translator);
         this.tag.setTranslator(translator);
         this.time.setTranslator(translator);

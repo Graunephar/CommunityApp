@@ -54,7 +54,7 @@ public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter{
         Marker marker = mIssueAdapterReference.get(issue);
         mAdapters.remove(marker);
         mIssueAdapterReference.remove(issue);
-        //marker.remove();
+        marker.remove();
     }
 
     public void changeMarker(CommunityIssue issue, Marker newmarker) {

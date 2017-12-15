@@ -61,8 +61,8 @@ public class IssueCategory {
         this.issueCategoryEnum = issueCategoryEnum;
     }
 
-    @Exclude
     @Override
+    @Exclude
     public String toString() {
         return translator.transLateCategoryToRessourceString(this.getIssueCategoryEnum());
     }

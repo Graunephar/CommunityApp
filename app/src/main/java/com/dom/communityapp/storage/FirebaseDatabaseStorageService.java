@@ -312,7 +312,7 @@ public class FirebaseDatabaseStorageService extends Service {
         dbref.removeValue();
         mGeoFire.removeLocation(issue.getFirebaseID());
         String issueurl = issue.getIssueImage().getImage_URL();
-        StorageReference photoRef = mFirebaseStorageReference.child(issueurl);
+        StorageReference photoRef = FirebaseStorage.getInstance().getReferenceFromUrl(issueurl);
         photoRef.delete();
     }
 

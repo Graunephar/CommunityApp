@@ -42,7 +42,7 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
     @Override
     public View getInfoWindow(Marker marker) {
-        return mView;
+        return null;
     }
 
     @Override
