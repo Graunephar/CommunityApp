@@ -16,7 +16,7 @@ import java.io.Serializable;
 public class IssueImage implements Serializable {
 
     @Exclude
-    private Bitmap bitmap;
+    private transient Bitmap bitmap;
 
     @Exclude
     private String localFilePath;

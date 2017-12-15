@@ -2,19 +2,14 @@ package com.dom.communityapp.models;
 
 import com.google.firebase.database.Exclude;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by daniel on 12/14/17.
  */
 
-public class IssueTag {
-
-
-    @Exclude
-    public void setTranslator(IssueDropDownTranslator translator) {
-        this.translator = translator;
-    }
+public class IssueTag implements Serializable{
 
     public enum Tag {
         ONEMANJOB,
@@ -25,7 +20,13 @@ public class IssueTag {
     private Tag issueTagEnum;
 
     @Exclude
-    private IssueDropDownTranslator translator;
+    private transient IssueDropDownTranslator translator;
+
+    @Exclude
+    public void setTranslator(IssueDropDownTranslator translator) {
+        this.translator = translator;
+    }
+
 
     public IssueTag() {
     }

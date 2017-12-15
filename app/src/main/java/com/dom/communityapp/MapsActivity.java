@@ -50,7 +50,8 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final String KEY_LOCATION = "location";
     private static final String KEY_MAP = "";
-    private final BroadCastReceiveUitility mBroadCastRecieveUtility;
+    private static final String ISSUES_KEY = "ISSSUUUUES_KEYKEY";
+    private BroadCastReceiveUitility mBroadCastRecieveUtility;
     private GoogleMap mMap;
     private Location mLastKnownLocation;
     private MapFragment mMapFragment;
@@ -76,11 +77,12 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     private InfoWindowAdapterManager mAdapterManager;
 
     FragmentManager Manager = getFragmentManager();
+    private String MANAGER_KEY = "MAAANAGER_key";
+    private String KEY_FIRST_LOCATION = "FIRST_LOCATION_KEY";
     //ImageView detailsImage;
 
 
     public MapsActivity() {
-        this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
         mIssues = new HashMap<>();
     }
 
@@ -90,13 +92,9 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         ButterKnife.bind(this);
 
-        // Retrieve location and camera position from saved instance state.
-        if (savedInstanceState != null) {
-            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+        checkRotationAndgetInstanceState(savedInstanceState);
 
-        }
-
-
+        this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
         this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
         mLocationAsker.askToChangeSettings(null); // Ask user to turn on location
 
@@ -112,20 +110,26 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
     }
 
+    private void checkRotationAndgetInstanceState(Bundle savedInstanceState) {
+
+        // Retrieve location and camera position from saved instance state.
+        if (savedInstanceState != null) {
+            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+            mFirstLocation = savedInstanceState.getBoolean(KEY_FIRST_LOCATION);
+            mIssues = (HashMap<String, CommunityIssue>) savedInstanceState.getSerializable(ISSUES_KEY);
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if (mMap != null) {
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
+            outState.putBoolean(KEY_FIRST_LOCATION, mFirstLocation);
+            outState.putSerializable(ISSUES_KEY, mIssues);
 
-            /*
-            unbindFromService();
-            outState.putSerializable(CURRENT_CITY_KEY, mCurrentCity);
-            outState.putSerializable(EXTRA_CITY_NAME, mCityName);
-            outState.putSerializable(EXTRA_CITY_ID, mCityID);
-             */
+            unbindFromStorageService();
+            unbindFromLocationService();
 
             super.onSaveInstanceState(outState);
-        }
     }
 
 
@@ -184,7 +188,20 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
             }
         });
 
+        drawExistingIssues();
+
         updateMap();
+    }
+
+    private void drawExistingIssues() {
+
+        if (mIssues != null) {
+            for (CommunityIssue issue : mIssues.values()) {
+                addIcon(issue);
+
+            }
+
+        }
     }
 
     @SuppressLint("MissingPermission")

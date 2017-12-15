@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -19,17 +20,33 @@ import java.util.Iterator;
  * Created by mrl on 13/12/2017.
  */
 
-public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter{
-    private final Activity mActivity;
+public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter, Serializable {
+    private transient Activity mActivity;
     private final HashMap<CommunityIssue, Marker> mIssueAdapterReference;
-    private final IssueResolver mIssueResolver;
-    private BiMap<Marker, InfoWindowAdapter> mAdapters;
+    private transient IssueResolver mIssueResolver;
+    private HashMap<Marker, InfoWindowAdapter> mAdapters;
 
     public InfoWindowAdapterManager(Activity activity, IssueResolver resolver) {
-        this.mAdapters = HashBiMap.create();
+        this.mAdapters = new HashMap<>();
         this.mActivity = activity;
         this.mIssueAdapterReference = new HashMap<>();
         this.mIssueResolver = resolver;
+    }
+
+    public Activity getmActivity() {
+        return mActivity;
+    }
+
+    public void setmActivity(Activity mActivity) {
+        this.mActivity = mActivity;
+    }
+
+    public IssueResolver getmIssueResolver() {
+        return mIssueResolver;
+    }
+
+    public void setmIssueResolver(IssueResolver mIssueResolver) {
+        this.mIssueResolver = mIssueResolver;
     }
 
     @Override

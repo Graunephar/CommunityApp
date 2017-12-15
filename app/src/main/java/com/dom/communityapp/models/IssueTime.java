@@ -2,18 +2,14 @@ package com.dom.communityapp.models;
 
 import com.google.firebase.database.Exclude;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by daniel on 12/14/17.
  */
 
-public class IssueTime {
-
-    @Exclude
-    public void setTranslator(IssueDropDownTranslator translator) {
-        this.translator = translator;
-    }
+public class IssueTime implements Serializable{
 
     public enum Time {
         HOUR,
@@ -23,11 +19,15 @@ public class IssueTime {
         LONGPROJECT
     }
 
-
     private Time issueTimeEnum;
 
     @Exclude
-    private IssueDropDownTranslator translator;
+    private transient IssueDropDownTranslator translator;
+
+    @Exclude
+    public void setTranslator(IssueDropDownTranslator translator) {
+        this.translator = translator;
+    }
 
     public IssueTime() {
     }

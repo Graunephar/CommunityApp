@@ -6,13 +6,14 @@ import android.content.Context;
 import com.dom.communityapp.R;
 import com.google.firebase.database.Exclude;
 
+import java.io.Serializable;
 import java.util.Locale;
 
 /**
  * Created by daniel on 12/14/17.
  */
 
-public class IssueDropDownTranslator {
+public class IssueDropDownTranslator{
 
 
     private final Context mContext;

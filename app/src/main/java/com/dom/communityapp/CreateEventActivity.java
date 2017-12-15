@@ -49,7 +49,14 @@ import pl.aprilapps.easyphotopicker.EasyImage;
 import pl.tajchert.nammu.PermissionCallback;
 
 public class CreateEventActivity extends AbstractNavigation implements LocationListener, FirebaseImageUploadObserver {
-    private static final String IMAGE = "";
+    private static final String IMAGE = "IMAGE__ON_SAVE";
+    private static final String SHORT_DESCRIPTION = "LALALLALA_Saving_the_Strong";
+    private static final String LONG_DESCRIPTION = "long_deacription";
+    private static final String FILE_PATH = "File_Pathe";
+    private String PICKED_CATEGORY = "Picked_catecat";
+    private String PICKED_TAG = "Picked_tagytagytag";
+    private String PICKED_TIME = "Picked_timeytime";
+
 
     //Local variable
 
@@ -104,11 +111,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
         ButterKnife.bind(this);
 
-        if (savedInstanceState != null) {
-
-            mTakenImage = savedInstanceState.getParcelable(IMAGE);
-            viewer.setImageBitmap(mTakenImage);
-        }
+        checkoOtationAndpersist(savedInstanceState);
 
         IssueDropDownTranslator translator = new IssueDropDownTranslator(this);
 
@@ -177,10 +180,39 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     }
 
+    private void checkoOtationAndpersist(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            mImageFilePath = savedInstanceState.getParcelable(FILE_PATH);
+            if (mImageFilePath != null) viewer.setImageURI(mImageFilePath);
+
+            String gotshort = savedInstanceState.getString(SHORT_DESCRIPTION);
+            String gotlong = savedInstanceState.getString(SHORT_DESCRIPTION);
+            if (gotshort != null) short_description.setText(gotshort);
+            if (gotlong != null) short_description.setText(gotlong);
+            mPickedTag = (IssueTag) savedInstanceState.getSerializable(PICKED_TAG);
+            mPickedTime = (IssueTime) savedInstanceState.getSerializable(PICKED_TIME);
+            mPickedCategory = (IssueCategory) savedInstanceState.getSerializable(PICKED_CATEGORY);
+            IssueDropDownTranslator translator = new IssueDropDownTranslator(this);
+            mPickedTag.setTranslator(translator);
+            mPickedTime.setTranslator(translator);
+            mPickedCategory.setTranslator(translator);
+
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
 
-       outState.putParcelable(IMAGE, mTakenImage);
+        outState.putParcelable(FILE_PATH, mImageFilePath);
+        outState.putString(SHORT_DESCRIPTION, short_description.getText().toString());
+        outState.putString(LONG_DESCRIPTION, long_description.getText().toString());
+        outState.putSerializable(PICKED_CATEGORY, mPickedCategory);
+        outState.putSerializable(PICKED_TIME, mPickedTime);
+        outState.putSerializable(PICKED_TAG, mPickedTag);
+
+        unbindFromStorageService();
+        unbindFromLocationService();
+
         super.onSaveInstanceState(outState);
     }
 
@@ -536,7 +568,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private void tryToUploadIssue() {
         if (mStorageServiceBound) {
-            if (!(mTakenImage == null || mPickedCategory == null || mPickedTime == null || mPickedTag == null)){
+            if (!(mTakenImage == null || mPickedCategory == null || mPickedTime == null || mPickedTag == null)) {
 
                 String shortdescription = short_description.getText().toString();
                 String longdescription = long_description.getText().toString();

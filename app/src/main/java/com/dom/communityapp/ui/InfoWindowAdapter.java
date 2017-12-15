@@ -14,13 +14,15 @@ import com.dom.communityapp.storage.IssueResolver;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
+import java.io.Serializable;
+
 /**
  * Created by daniel on 12/10/17.
  */
 
-public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
+public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Serializable {
 
-    private final IssueResolver mIssueResolver;
+    private IssueResolver mIssueResolver;
     private Activity mActivity;
     private final CommunityIssue mIssue;
     private View mView;
