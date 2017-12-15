@@ -14,41 +14,6 @@ import java.util.List;
 
 public class CommunityIssue implements Serializable {
 
-
-    public enum IssueTag {
-        ONEMANJOB("One Man Job"),
-        CCOP("Cooporation"),
-        PROF("Professional");
-
-        private String tag;
-
-        IssueTag(String tag) {
-            this.tag = tag;
-        }
-
-        public String tag() {
-            return this.tag;
-        }
-    }
-
-    public enum IssueTime {
-        HOUR("hour"),
-        EFTERNOON("efternoon"),
-        WEEKEND("weekend"),
-        SHORTPROJECT("shortproject"),
-        LONGPROJECT("longproject");
-
-        private String time;
-
-        IssueTime(String time) {
-            this.time = time;
-        }
-
-        public String time() {
-            return time;
-        }
-    }
-
     private IssueImage issueImage;
 
     @Exclude
@@ -71,17 +36,9 @@ public class CommunityIssue implements Serializable {
     @Exclude
     private String firebaseID;
 
+    //Default constructor required by firebase, just like the getters and setters for all the things
     public CommunityIssue() {
 
-    }
-
-    //Default constructor required by firebase, just like the getters and setters for all the things
-    public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueImage issueImage, LatLng coordinate) {
-        this.category = category;
-        this.short_description = shortdescription;
-        this.long_description = longdescription;
-        this.issueImage = issueImage;
-        this.coordinate = coordinate;
     }
 
     public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueTag tag, IssueTime issueTime, IssueImage issueImage, LatLng coordinate) {

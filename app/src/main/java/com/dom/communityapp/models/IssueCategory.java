@@ -38,15 +38,6 @@ public class IssueCategory {
     }
 
     @Exclude
-    public String[] getCategoriesAsStrings() {
-        ArrayList<String> result = new ArrayList<>();
-        for(Category category : Category.values()) {
-            result.add(this.translator.transLateCategoryToRessourceString(category));
-        }
-        return (String[]) result.toArray();
-    }
-
-    @Exclude
     public IssueCategory[] generateCatArray() {
         ArrayList<IssueCategory> result = new ArrayList<>();
         for(Category category : Category.values()) {

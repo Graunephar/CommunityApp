@@ -25,6 +25,8 @@ import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.models.IssueCategory;
 import com.dom.communityapp.models.IssueDropDownTranslator;
+import com.dom.communityapp.models.IssueTag;
+import com.dom.communityapp.models.IssueTime;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.models.CommunityIssue;
@@ -80,8 +82,8 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
     private LocationCommunityService mLocationService;
 
     private IssueCategory mPickedCategory;
-    private CommunityIssue.IssueTag mPickedTag;
-    private CommunityIssue.IssueTime mPickedTime;
+    private IssueTag mPickedTag;
+    private IssueTime mPickedTime;
 
     //Request codes
     // private static final int CAMERA_REQUEST_CODE = 11;
@@ -108,26 +110,27 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
             viewer.setImageBitmap(mTakenImage);
         }
 
-/*
+        IssueDropDownTranslator translator = new IssueDropDownTranslator(this);
 
+
+        mPickedTag = new IssueTag(translator);
         //Adapter for tag_spin
-        ArrayAdapter<CommunityIssue.IssueTag> tag_spin_adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, CommunityIssue.IssueTag.values());
+        ArrayAdapter<IssueTag> tag_spin_adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, mPickedTag.generateTagArray());
         tag_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tag_spin.setAdapter(tag_spin_adapter);
         tag_spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mPickedTag = (CommunityIssue.IssueTag) parent.getItemAtPosition(position);
+                mPickedTag = (IssueTag) parent.getItemAtPosition(position);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 mPickedTag = null;
             }
-        });*/
+        });
 
-        IssueDropDownTranslator translator = new IssueDropDownTranslator(this);
         mPickedCategory = new IssueCategory(translator);
 
         //Adapter for cat_spin
@@ -147,24 +150,25 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
                 mPickedCategory = null;
             }
         });
-/*
+
+        mPickedTime = new IssueTime(translator);
         //Adapter for time_spin
-        ArrayAdapter<CommunityIssue.IssueTime> time_spin_adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, CommunityIssue.IssueTime.values());
+        ArrayAdapter<IssueTime> time_spin_adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, mPickedTime.generateTimeArray());
         time_spin_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         time_spin.setAdapter(time_spin_adapter);
 
         time_spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mPickedTime = (CommunityIssue.IssueTime) parent.getItemAtPosition(position);
+                mPickedTime = (IssueTime) parent.getItemAtPosition(position);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 mPickedTime = null;
             }
-        });*/
+        });
 
         EasyImage.configuration(this).setAllowMultiplePickInGallery(false); // allows multiple picking in galleries that handle it. Also only for phones with API 18+ but it won't crash lower APIs. False by default
 
@@ -532,10 +536,10 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
     private void tryToUploadIssue() {
         if (mStorageServiceBound) {
-            if (!(mTakenImage == null || mPickedCategory == null)){
+            if (!(mTakenImage == null || mPickedCategory == null || mPickedTime == null || mPickedTag == null)){
 
-                String sshort = short_description.getText().toString();
-                String llong = long_description.getText().toString();
+                String shortdescription = short_description.getText().toString();
+                String longdescription = long_description.getText().toString();
 
                 IssueImage issueImage = new IssueImage(mImageFilePath, mTakenImage);
 
@@ -543,7 +547,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
                 double longitude = mLastKnownLocation.getLongitude();
                 LatLng latlng = new LatLng(latitude, longitude);
 
-                CommunityIssue issue = new CommunityIssue(sshort, llong, mPickedCategory, issueImage, latlng);
+                CommunityIssue issue = new CommunityIssue(shortdescription, longdescription, mPickedCategory, mPickedTag, mPickedTime, issueImage, latlng);
 
                 mStorageService.saveIssueAndImageToDatabase(issue, this);
 

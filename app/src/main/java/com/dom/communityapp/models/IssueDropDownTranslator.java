@@ -33,4 +33,23 @@ public class IssueDropDownTranslator {
     }
 
 
+    public String transLateTagToRessourceString(IssueTag.Tag tag) {
+        switch (tag) {
+            case COOP: return mContext.getString(R.string.tags_coop);
+            case PROF: return mContext.getString(R.string.tags_pro);
+            case ONEMANJOB: return mContext.getString(R.string.tags_job);
+        }
+        return null;
+    }
+
+    public String transLateTimeToRessourceString(IssueTime.Time time) {
+        switch (time) {
+            case HOUR: return mContext.getString(R.string.time_hour);
+            case EFTERNOON: return mContext.getString(R.string.time_afternoon);
+            case WEEKEND: return mContext.getString(R.string.time_weekend);
+            case LONGPROJECT: return mContext.getString(R.string.time_longproject);
+            case SHORTPROJECT: return mContext.getString(R.string.time_shortproject);
+        }
+        return null;
+    }
 }
