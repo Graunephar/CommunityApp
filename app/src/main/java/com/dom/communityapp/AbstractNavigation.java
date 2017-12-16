@@ -41,8 +41,6 @@ public abstract class AbstractNavigation extends AppCompatActivity
         drawer.addDrawerListener(mToggle);
         mToggle.syncState();
 
-      //  ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        //        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         NavigationView navigationView = (NavigationView) findViewById(R.id.draw_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -114,7 +112,6 @@ public abstract class AbstractNavigation extends AppCompatActivity
         }
 
 
-        // Null DO NOT DELETE YET
 
         DrawerLayout drawer = (DrawerLayout) getdrawerLayout();
         drawer.closeDrawer(GravityCompat.START);

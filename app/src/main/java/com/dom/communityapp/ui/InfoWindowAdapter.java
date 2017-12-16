@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import com.dom.communityapp.R;
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.IssueDropDownTranslator;
+import com.dom.communityapp.models.IssueTag;
 import com.dom.communityapp.storage.IssueResolver;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
@@ -18,6 +20,9 @@ import java.io.Serializable;
 
 /**
  * Created by daniel on 12/10/17.
+ *
+ * Create, show/remove method and fill infowindows on map/events
+ *
  */
 
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Serializable {
@@ -38,7 +43,6 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Serializa
         this.mView = mActivity.getLayoutInflater().inflate(R.layout.bubble_marker_layout, null);
         iconView = (ImageView) mView.findViewById(R.id.marker_icon);
         this.mIssueResolver = resolver;
-
     }
 
 
@@ -52,9 +56,12 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Serializa
 
         markerLabel = (TextView) mView.findViewById(R.id.marker_label);
         anotherLabel = (TextView) mView.findViewById(R.id.another_label);
+        
 
         markerLabel.setText(mIssue.getShort_description());
-        anotherLabel.setText(mIssue.getLong_description());
+        IssueTag tag = mIssue.getTag();
+        tag.setTranslator(new IssueDropDownTranslator(mActivity));
+        anotherLabel.setText(mIssue.getTag().toString());
 
         setIcon();
 

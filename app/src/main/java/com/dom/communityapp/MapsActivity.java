@@ -42,6 +42,9 @@ import java.util.HashMap;
 
 import butterknife.ButterKnife;
 
+/** Main entry to the app. uses google.maps and pretty much ties everything together
+*/
+
 public class MapsActivity extends AbstractNavigation implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, LocationListener, IssueLocationListener, IssueResolver {
 
 

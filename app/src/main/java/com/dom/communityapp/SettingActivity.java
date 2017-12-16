@@ -7,6 +7,11 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+/** Activity for personalization of the app, not all features are fully
+ * implemented due to timepressure and prioritazation
+ *
+*/
+
 public class SettingActivity extends AbstractNavigation {
 
     SeekBar seekBar_id;
@@ -32,7 +37,9 @@ public class SettingActivity extends AbstractNavigation {
     seekBarValue = (TextView) findViewById(R.id.txt_seekbar_value);
 
 
-  /*  seekBar_id.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+  /*
+  Future work: bind the seekbar progress to the textview
+  seekBar_id.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             onStartTrackingTouch(seekBar);

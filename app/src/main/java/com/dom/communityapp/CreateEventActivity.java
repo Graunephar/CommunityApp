@@ -47,7 +47,6 @@ import butterknife.OnClick;
 import pl.aprilapps.easyphotopicker.DefaultCallback;
 import pl.aprilapps.easyphotopicker.EasyImage;
 import pl.tajchert.nammu.PermissionCallback;
-
 public class CreateEventActivity extends AbstractNavigation implements LocationListener, FirebaseImageUploadObserver {
     private static final String IMAGE = "IMAGE__ON_SAVE";
     private static final String SHORT_DESCRIPTION = "LALALLALA_Saving_the_Strong";

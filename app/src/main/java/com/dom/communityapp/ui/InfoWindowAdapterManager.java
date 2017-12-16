@@ -18,6 +18,8 @@ import java.util.Iterator;
 
 /**
  * Created by mrl on 13/12/2017.
+ *
+ * eventhandlers for infowindows uses composite patters
  */
 
 public class InfoWindowAdapterManager implements GoogleMap.InfoWindowAdapter, Serializable {

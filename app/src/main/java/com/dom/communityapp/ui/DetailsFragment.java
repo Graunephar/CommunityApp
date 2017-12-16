@@ -18,6 +18,7 @@ import com.dom.communityapp.models.IssueDropDownTranslator;
 
 /**
  * Created by oleklitgaard-jensen on 13/12/2017.
+ * The fragment with is inflated on top of the map markers
  */
 
 public class DetailsFragment extends Fragment{
@@ -40,8 +41,6 @@ public class DetailsFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.details_fragment_layout,container,false);
-
-        //ButterKnife.bind(getView());
 
 
         closeImage = (ImageView) view.findViewById(R.id.imageButton);
@@ -80,8 +79,6 @@ public class DetailsFragment extends Fragment{
         category.setText(issue.getCategory().toString());
         tags.setText(issue.getTag().toString());
         time.setText(issue.getTime().toString());
-
-
 
 
         return view;

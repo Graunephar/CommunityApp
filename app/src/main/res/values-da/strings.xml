@@ -48,7 +48,7 @@
     <string name="time_afternoon">Eftermiddag</string>
     <string name="time_shortproject">Kort projekt</string>
     <string name="time_longproject">Langtids projekt</string>
-    <string name="create_event_txted_short" translatable="false">En kort Beskrivelse af dit Event</string>
+    <string name="create_event_txted_short">En kort Beskrivelse af dit Event</string>
     <string name="title_activity_maps">Kort</string>
     <string name="image_compression_error">Billede virker ikke</string>
     <string name="action_map">Kort</string>
