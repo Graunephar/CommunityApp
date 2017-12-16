@@ -7,6 +7,7 @@ import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCU
 
 /**
  * Created by daniel on 11/30/17.
+ * Location Settings Constants
  */
 
 public class LocationConstants {

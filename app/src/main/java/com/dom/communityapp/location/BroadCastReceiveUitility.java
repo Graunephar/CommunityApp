@@ -12,6 +12,7 @@ import static com.dom.communityapp.location.LocationConstants.EXTRA_LAST_LOCATIO
 
 /**
  * Created by daniel on 11/23/17.
+ * Helper class to receive broadcasts
  */
 
 public class BroadCastReceiveUitility {
@@ -28,7 +29,6 @@ public class BroadCastReceiveUitility {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
-                //TODO: may produce nullpointer Exception
                 Location location = (Location) bundle.getParcelable(EXTRA_LAST_LOCATION);
                 mActivity.locationIncoming(location);
             }

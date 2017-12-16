@@ -11,8 +11,10 @@ import static com.dom.communityapp.location.LocationConstants.EXTRA_LAST_LOCATIO
 
 /**
  * Created by daniel on 11/22/17.
+ * Sends last position via Broadcast
  */
 
+//ref: assignment 2
 public class BroadCastSendUtility {
 
     public static final String BROADCAST_BACKGROUND_SERVICE_RESULT = "com.dom.communityapp.location.BROADCAST_BACKGROUND_SERVICE_RESULT";
@@ -23,17 +25,16 @@ public class BroadCastSendUtility {
         mContext = context;
     }
 
-
     //Sending local broadcasts
     public void broadCastLocation(Location location) {
 
-        if(location == null) return;
+        if (location == null) return;
 
         //Creating broadcast intent
         Intent intent = new Intent();
         intent.setAction(BROADCAST_BACKGROUND_SERVICE_RESULT);
 
-        //Putting in the last weather info
+
         Bundle bundle = new Bundle();
         bundle.putParcelable(EXTRA_LAST_LOCATION, location);
         intent.putExtras(bundle);

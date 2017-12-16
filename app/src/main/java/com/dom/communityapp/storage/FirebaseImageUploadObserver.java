@@ -1,9 +1,9 @@
 package com.dom.communityapp.storage;
 
 /**
- * Created by daniel on 12/14/17.
+ * Used for calling back when errors relating to images occur
  */
 
 public interface FirebaseImageUploadObserver {
-    void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCopressionException e);
+    void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCompressionException e);
 }

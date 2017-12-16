@@ -24,6 +24,7 @@ import static com.dom.communityapp.location.LocationConstants.LOCATION_LOW;
 
 /**
  * Created by daniel on 11/30/17.
+ * Asks for permission on location, and keeps asking until enabled.
  */
 
 public class LocationSettingAsker implements SettingAsker {
@@ -123,7 +124,7 @@ public class LocationSettingAsker implements SettingAsker {
                 while (!mLocationRequestQueue.isEmpty()) { // If we have old permission requests we will let them know that there is now permission
                     PermissionRequestCallback oldcallback = mLocationRequestQueue.remove();
                     if (!oldcallback.expirable()) {
-                        oldcallback.onPermissionGranted(); //TODO Old permission requests should poperbly expire at some point
+                        oldcallback.onPermissionGranted();
                     }
                 }
             }

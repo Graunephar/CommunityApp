@@ -3,7 +3,7 @@ package com.dom.communityapp.storage;
 import com.dom.communityapp.models.CommunityIssue;
 
 /**
- * Created by daniel on 12/15/17.
+ * Used as callback when issue is resolved
  */
 
 public interface IssueResolver {

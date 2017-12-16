@@ -8,13 +8,12 @@ import pl.tajchert.nammu.PermissionCallback;
 
 /**
  * Created by daniel on 12/13/17.
+ * Can enable WRITE_EXTERNAL_STORAGE
  */
 
 public class StorageSettingAsker implements SettingAsker {
     private final Activity mActivity;
 
-    //Permission//
-    //WRITE_EXTERNAL_STORAGE
 
     public StorageSettingAsker(Activity activity) {
         this.mActivity = activity;
@@ -46,7 +45,6 @@ public class StorageSettingAsker implements SettingAsker {
             @Override
             public void permissionGranted() {
                 callback.onPermissionGranted();
-
             }
 
             @Override

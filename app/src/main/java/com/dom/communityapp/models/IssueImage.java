@@ -11,6 +11,7 @@ import java.io.Serializable;
 
 /**
  * Created by daniel on 12/9/17.
+ * Use serializable images to parse them around as either filepath, url or bitmap
  */
 
 public class IssueImage implements Serializable {

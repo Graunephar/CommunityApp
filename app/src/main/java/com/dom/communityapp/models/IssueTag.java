@@ -7,9 +7,11 @@ import java.util.ArrayList;
 
 /**
  * Created by daniel on 12/14/17.
+ * Issue Tags are serializable through Firebase.
+ * Also returns tags as Arrays
  */
 
-public class IssueTag implements Serializable{
+public class IssueTag implements Serializable {
 
     public enum Tag {
         ONEMANJOB,
@@ -46,7 +48,7 @@ public class IssueTag implements Serializable{
     @Exclude
     public IssueTag[] generateTagArray() {
         ArrayList<IssueTag> result = new ArrayList<>();
-        for(Tag category : Tag.values()) {
+        for (Tag category : Tag.values()) {
             result.add(new IssueTag(category, translator));
         }
 
@@ -59,7 +61,7 @@ public class IssueTag implements Serializable{
     }
 
     public void setIssueCategoryEnum(Tag tag) {
-        this.issueTagEnum= tag;
+        this.issueTagEnum = tag;
     }
 
     @Exclude

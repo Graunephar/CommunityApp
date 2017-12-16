@@ -7,10 +7,11 @@ import java.util.ArrayList;
 
 /**
  * Created by daniel on 12/14/17.
+ * Issue Categories are serializable through Firebase.
+ * Also returns categories as Arrays
  */
 
-public class IssueCategory implements Serializable{
-
+public class IssueCategory implements Serializable {
 
     public enum Category {
         BUILD,
@@ -48,7 +49,7 @@ public class IssueCategory implements Serializable{
     @Exclude
     public IssueCategory[] generateCatArray() {
         ArrayList<IssueCategory> result = new ArrayList<>();
-        for(Category category : Category.values()) {
+        for (Category category : Category.values()) {
             result.add(new IssueCategory(category, translator));
         }
 

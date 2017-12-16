@@ -7,9 +7,11 @@ import java.util.ArrayList;
 
 /**
  * Created by daniel on 12/14/17.
+ * Issue Time are serializable through Firebase.
+ * Also returns Time as Arrays
  */
 
-public class IssueTime implements Serializable{
+public class IssueTime implements Serializable {
 
     public enum Time {
         HOUR,
@@ -46,7 +48,7 @@ public class IssueTime implements Serializable{
     @Exclude
     public IssueTime[] generateTimeArray() {
         ArrayList<IssueTime> result = new ArrayList<>();
-        for(Time category : Time.values()) {
+        for (Time category : Time.values()) {
             result.add(new IssueTime(category, translator));
         }
 

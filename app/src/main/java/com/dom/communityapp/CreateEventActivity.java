@@ -596,7 +596,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
 
     @Override
-    public void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCopressionException e) {
+    public void onImageErrorDetected(FirebaseDatabaseStorageService.FirebaseImageCompressionException e) {
         Toast.makeText(getApplicationContext(), R.string.image_compression_error, Toast.LENGTH_SHORT).show();
     }
 }

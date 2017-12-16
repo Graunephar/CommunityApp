@@ -1,8 +1,6 @@
 package com.dom.communityapp.storage;
 
-import android.app.ProgressDialog;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,7 +10,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
 import com.dom.communityapp.models.IssueImage;
@@ -26,19 +23,16 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +41,7 @@ import id.zelory.compressor.Compressor;
 
 
 /**
- * Created by mrl on 07/12/2017.
+ * Does all the Firebase stuff.
  */
 
 public class FirebaseDatabaseStorageService extends Service {
@@ -98,16 +92,24 @@ public class FirebaseDatabaseStorageService extends Service {
     }
 
 
+    /* Called by activities */
+
+    /**
+     *
+     * @param issue, the issue to be uploaded
+     * @param observer, the observer to be called if something goes wrong
+     */
     public void saveIssueAndImageToDatabase(final CommunityIssue issue, final FirebaseImageUploadObserver observer) {
         final IssueImage issueImage = issue.getIssueImage();
 
+        //Se if we have auth
         checkFirebaseSignInAndDoStuff(Uri.parse(issueImage.getLocalFilePath()), new FirebaseConsumer<Uri>() {
             @Override
-            public void accept(Uri subject) {
+            public void accept(Uri subject) {//If we have auth do stuff
 
                 try {
                     uploadFileAndAddIssue(subject, issueImage, issue);
-                } catch (FirebaseImageCopressionException e) {
+                } catch (FirebaseImageCompressionException e) {
                     CompressionErrorDetected(observer, e);
                 }
 
@@ -115,11 +117,87 @@ public class FirebaseDatabaseStorageService extends Service {
         });
     }
 
-    private void CompressionErrorDetected(FirebaseImageUploadObserver observer, FirebaseImageCopressionException e) {
-        observer.onImageErrorDetected(e);
+
+    /**
+     * Can remove an issue and its image from firebase
+     * @param issue The issue to be removed
+     */
+    public void removeIssue(CommunityIssue issue) {
+        DatabaseReference dbref = mFirebaseIssueReference.child(issue.getFirebaseID());
+        dbref.removeValue();
+        mGeoFire.removeLocation(issue.getFirebaseID());
+        String issueurl = issue.getIssueImage().getImage_URL();
+        StorageReference photoRef = FirebaseStorage.getInstance().getReferenceFromUrl(issueurl);
+        photoRef.delete();
     }
 
-    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) throws FirebaseImageCopressionException {
+    /**
+     * Registers a new location query that calls all observer when locations in the query changes.
+     * Remember to add the class calling this as an observer before doing this.
+     * @param location The location that will be the center of the query
+     * @param radius the radius of the wuery
+     */
+    public void addLocationQuery(Location location, double radius) {
+        final double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+
+        GeoLocation geoLocation = new GeoLocation(latitude, longitude);
+        GeoQuery query = mGeoFire.queryAtLocation(geoLocation, radius);
+        query.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                for (IssueLocationListener listener : mLocationListeners) {
+                    LatLng latlng = new LatLng(location.latitude, location.longitude);
+                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
+                        @Override
+                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
+                            callback.newIssue(subject);
+                            tryToGetImageAndSendSeperately(subject, callback);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+                for (IssueLocationListener listener : mLocationListeners) {
+                    listener.issueRemoved(new CommunityIssue(key));
+                }
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+                for (IssueLocationListener listener : mLocationListeners) {
+                    LatLng latlng = new LatLng(location.latitude, location.longitude);
+                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
+                        @Override
+                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
+                            callback.movedIssue(subject);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+                //Nothing to do
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+                //NOthing to do at the moment
+            }
+        });
+    }
+
+
+
+
+    private void CompressionErrorDetected(FirebaseImageUploadObserver observer, FirebaseImageCompressionException e) {
+        observer.onImageErrorDetected(e); //We cannot do much about this so we call the user
+    }
+
+    private void uploadFileAndAddIssue(Uri filepath, final IssueImage issueImage, final CommunityIssue issue) throws FirebaseImageCompressionException {
         uploadFileLocal(filepath, new FirebaseFileUploadCallback() { // first we push the issueImage
             @Override
             public void onUploadSuccess(Uri donwloaduri) { // When imaged is in storage we can save the issue
@@ -130,6 +208,7 @@ public class FirebaseDatabaseStorageService extends Service {
 
     }
 
+    //Pushes a single issue to the database
     private void saveIssueToDatabase(CommunityIssue issue) {
 
         String id = mFirebaseIssueReference.push().getKey();
@@ -143,6 +222,7 @@ public class FirebaseDatabaseStorageService extends Service {
 
     }
 
+    //Check if we are signed in callbacks to a consumer if we are
     private void checkFirebaseSignInAndDoStuff(Uri filepath, FirebaseConsumer<Uri> consumer) {
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
         if (user != null) {
@@ -153,6 +233,7 @@ public class FirebaseDatabaseStorageService extends Service {
 
     }
 
+    //Make a anonoumous account for the user
     private void signInAnonymously(final FirebaseConsumer<Uri> consumer, final Uri filepath) {
         mFirebaseAuth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
@@ -169,7 +250,7 @@ public class FirebaseDatabaseStorageService extends Service {
     }
 
     //Made to upload files in background without updating a gui at the same time...
-    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) throws FirebaseImageCopressionException {
+    private void uploadFileLocal(Uri filepath, final FirebaseFileUploadCallback callback) throws FirebaseImageCompressionException {
         StorageReference imageRef = mFirebaseStorageReference.child(IMG_LOCATION + filepath.getLastPathSegment());
 
 
@@ -194,7 +275,8 @@ public class FirebaseDatabaseStorageService extends Service {
 
     }
 
-    private Uri compressImage(Uri filepath) throws FirebaseImageCopressionException {
+    //Uses compressor to compress an image
+    private Uri compressImage(Uri filepath) throws FirebaseImageCompressionException {
 
         File imagefile = new File(filepath.getPath());
         File compressedImageFile = null;
@@ -202,69 +284,15 @@ public class FirebaseDatabaseStorageService extends Service {
         try {
             compressedImageFile = new Compressor(this).compressToFile(imagefile);
         } catch (IOException e) {
-            throw new FirebaseImageCopressionException("ERRRRRRROOOORR BADNESS 1000000");
+            throw new FirebaseImageCompressionException("ERRRRRRROOOORR BADNESS 1000000");
         }
 
         return Uri.fromFile(compressedImageFile);
 
     }
 
-    public void addLocationQuery(Location location, double radius) {
-        final double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
 
-        GeoLocation geoLocation = new GeoLocation(latitude, longitude);
-        GeoQuery query = mGeoFire.queryAtLocation(geoLocation, radius);
-        query.addGeoQueryEventListener(new GeoQueryEventListener() {
-            @Override
-            public void onKeyEntered(String key, GeoLocation location) {
-                //  Toast.makeText(mContext.getApplicationContext(), "onKeyEntered" + location.toString(), Toast.LENGTH_LONG).show();
-                for (IssueLocationListener listener : mLocationListeners) {
-                    LatLng latlng = new LatLng(location.latitude, location.longitude);
-                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
-                        @Override
-                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
-                            callback.newIssue(subject);
-                            tryToGetImageAndSendSeperately(subject, callback);
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onKeyExited(String key) {
-                for (IssueLocationListener listener : mLocationListeners) {
-                    listener.issueRemoved(new CommunityIssue(key));
-                }
-                //  Toast.makeText(mContext.getApplicationContext(), "onKeyExited" + key, Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onKeyMoved(String key, GeoLocation location) {
-                //Toast.makeText(mContext.getApplicationContext(), "onKeyMoved" + location.toString(), Toast.LENGTH_LONG).show();
-                for (IssueLocationListener listener : mLocationListeners) {
-                    LatLng latlng = new LatLng(location.latitude, location.longitude);
-                    attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
-                        @Override
-                        public void accept(CommunityIssue subject, IssueLocationListener callback) {
-                            callback.movedIssue(subject);
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onGeoQueryReady() {
-                //    Toast.makeText(mContext.getApplicationContext(), "onGeoQueryReady", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onGeoQueryError(DatabaseError error) {
-                // Toast.makeText(mContext.getApplicationContext(), "onGeoQueryError" + error, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
+    //Gets the image, called after the issue has been downloaded and send to the observer
     private void tryToGetImageAndSendSeperately(final CommunityIssue issue, final IssueLocationListener callback) {
         final IssueImage image = issue.getIssueImage();
 
@@ -284,6 +312,7 @@ public class FirebaseDatabaseStorageService extends Service {
         }
     }
 
+    //Attaches listeners to a new issue
     private void attachListenerToNewIssue(String firebaseId, final LatLng location, final IssueLocationListener listener, final FirebaseBiConsumer<CommunityIssue, IssueLocationListener> callback) {
         DatabaseReference ref = mFirebaseIssueReference.child(firebaseId).getRef();
 
@@ -305,47 +334,6 @@ public class FirebaseDatabaseStorageService extends Service {
                 //TODO what to do?
             }
         });
-    }
-
-    public void removeIssue(CommunityIssue issue) {
-        DatabaseReference dbref = mFirebaseIssueReference.child(issue.getFirebaseID());
-        dbref.removeValue();
-        mGeoFire.removeLocation(issue.getFirebaseID());
-        String issueurl = issue.getIssueImage().getImage_URL();
-        StorageReference photoRef = FirebaseStorage.getInstance().getReferenceFromUrl(issueurl);
-        photoRef.delete();
-    }
-
-    private interface FirebaseFileUploadCallback {
-
-        void onUploadSuccess(Uri donwloaduri);
-    }
-
-    private interface FirebaseConsumer<U> {
-        void accept(U subject);
-
-    }
-
-
-    private interface FirebaseBiConsumer<U, T> {
-        void accept(U subject, T callback);
-
-    }
-
-    private class AuthException extends RuntimeException {
-        private final String message;
-
-        private AuthException(String message) {
-            this.message = message;
-        }
-    }
-
-    public class FirebaseImageCopressionException extends IOException {
-        private final String message;
-
-        private FirebaseImageCopressionException(String message) {
-            this.message = message;
-        }
     }
 
 
@@ -373,6 +361,60 @@ public class FirebaseDatabaseStorageService extends Service {
             return FirebaseDatabaseStorageService.this;
         }
     }
+
+
+    /* Private interfaces and exceptions */
+
+    /**
+     * Used when uploading images
+     */
+    private interface FirebaseFileUploadCallback {
+
+        void onUploadSuccess(Uri donwloaduri);
+    }
+
+    /**
+     * Used for callbacks, own implementation of Consumer from Java.util because of java version
+     * @param <U> the type of the parameter
+     */
+    private interface FirebaseConsumer<U> {
+        void accept(U subject);
+
+    }
+
+    /**
+     * Used for callbacks, own implementation of Consumer from Java.util because of java version
+     * @param <U> type of parameter
+     * @param <T> type of parameter
+     */
+    private interface FirebaseBiConsumer<U, T> {
+        void accept(U subject, T callback);
+
+    }
+
+    /**
+     * Used when user have no auth
+     */
+    private class AuthException extends RuntimeException {
+        private final String message;
+
+        private AuthException(String message) {
+            this.message = message;
+        }
+    }
+
+    /**
+     * Used when can not compress images
+     */
+    public class FirebaseImageCompressionException extends IOException {
+        private final String message;
+
+        private FirebaseImageCompressionException(String message) {
+            this.message = message;
+        }
+    }
+
+
 
 
 }
