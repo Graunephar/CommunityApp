@@ -18,16 +18,11 @@ public class CommunityIssue implements Serializable {
 
     private IssueImage issueImage;
 
-    @Exclude
-    private LatLng coordinate;
-
     private String name;
 
     private String long_description;
 
     private String short_description;
-
-    private List<String> comments;
 
     private IssueTag tag;
 
@@ -35,15 +30,20 @@ public class CommunityIssue implements Serializable {
 
     private IssueCategory category;
 
+    private List<String> comments;
+
     @Exclude
     private String firebaseID;
+
+    @Exclude
+    private IssueCoordinate coordinate;
 
     //Default constructor required by firebase, just like the getters and setters for all the things
     public CommunityIssue() {
 
     }
 
-    public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueTag tag, IssueTime issueTime, IssueImage issueImage, LatLng coordinate) {
+    public CommunityIssue(String shortdescription, String longdescription, IssueCategory category, IssueTag tag, IssueTime issueTime, IssueImage issueImage, IssueCoordinate coordinate) {
         this.category = category;
         this.tag = tag;
         this.time = issueTime;
@@ -57,16 +57,6 @@ public class CommunityIssue implements Serializable {
 
     public CommunityIssue(String key) {
         this.firebaseID = key;
-    }
-
-    @Exclude
-    public LatLng getCoordinate() {
-        return coordinate;
-    }
-
-    @Exclude
-    public void setCoordinate(LatLng coordinate) {
-        this.coordinate = coordinate;
     }
 
     public String getName() {
@@ -145,6 +135,15 @@ public class CommunityIssue implements Serializable {
         this.firebaseID = firebaseID;
     }
 
+    @Exclude
+    public IssueCoordinate getCoordinate() {
+        return coordinate;
+    }
+
+    @Exclude
+    public void setCoordinate(IssueCoordinate coordinate) {
+        this.coordinate = coordinate;
+    }
 
     @Exclude
     public int getIcon() {

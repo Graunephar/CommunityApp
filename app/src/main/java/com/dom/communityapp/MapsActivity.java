@@ -21,6 +21,7 @@ import android.util.Log;
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.IssueCoordinate;
 import com.dom.communityapp.permisssion.LocationSettingAsker;
 import com.dom.communityapp.permisssion.PermissionRequestCallback;
 import com.dom.communityapp.storage.FirebaseDatabaseStorageService;
@@ -97,7 +98,6 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
         this.mBroadCastRecieveUtility = new BroadCastReceiveUitility(this);
         this.mLocationAsker = new LocationSettingAsker(this); // Start locationpemission process
         mLocationAsker.askToChangeSettings(null); // Ask user to turn on location
-
 
         mMapFragment = MapFragment.newInstance();
 
@@ -330,13 +330,13 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
 
         if (mIssues.containsKey(incomingissue.getFirebaseID())) {
             CommunityIssue existingissue = mIssues.get(incomingissue.getFirebaseID());
-            Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
-            existingissue.getIssueImage().setBitmap(croppedbitmap);
+            //Bitmap issuebitmap = incomingissue.getIssueImage().getBitmap();
+            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            //issuebitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            //byte[] byteArray = stream.toByteArray();
+            //Bitmap factory = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            //Bitmap croppedbitmap = Bitmap.createScaledBitmap(factory, 120, 120, false);
+            //existingissue.getIssueImage().setBitmap(croppedbitmap);
         } else {
 
             //TODO ADD to halløj
@@ -354,8 +354,10 @@ public class MapsActivity extends AbstractNavigation implements OnMapReadyCallba
     }
 
     private Marker createMarker(CommunityIssue issue) {
+        IssueCoordinate coordinate = issue.getCoordinate();
+        LatLng latlng = new LatLng(coordinate.getLatitude(), coordinate.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions().
-                position(issue.getCoordinate());
+                position(latlng);
 
         BitmapDescriptor bitmapdescriptor = BitmapDescriptorFactory.fromResource(issue.getIcon());
         markerOptions.icon(bitmapdescriptor);

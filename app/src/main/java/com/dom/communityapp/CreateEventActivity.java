@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.dom.communityapp.location.BroadCastReceiveUitility;
 import com.dom.communityapp.location.LocationListener;
 import com.dom.communityapp.models.IssueCategory;
+import com.dom.communityapp.models.IssueCoordinate;
 import com.dom.communityapp.models.IssueDropDownTranslator;
 import com.dom.communityapp.models.IssueTag;
 import com.dom.communityapp.models.IssueTime;
@@ -577,7 +578,7 @@ public class CreateEventActivity extends AbstractNavigation implements LocationL
 
                 double latitude = mLastKnownLocation.getLatitude();
                 double longitude = mLastKnownLocation.getLongitude();
-                LatLng latlng = new LatLng(latitude, longitude);
+                IssueCoordinate latlng = new IssueCoordinate(latitude, longitude);
 
                 CommunityIssue issue = new CommunityIssue(shortdescription, longdescription, mPickedCategory, mPickedTag, mPickedTime, issueImage, latlng);
 

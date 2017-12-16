@@ -10,11 +10,13 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.dom.communityapp.models.CommunityIssue;
+import com.dom.communityapp.models.IssueCoordinate;
 import com.dom.communityapp.models.IssueImage;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -37,6 +39,7 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -136,8 +139,8 @@ public class FirebaseDatabaseStorageService extends Service {
 
         mFirebaseIssueReference.child(id).setValue(issue); // ref https://stackoverflow.com/questions/37094631/get-the-pushed-id-for-specific-value-in-firebase-android
 
-        double latitude = issue.getCoordinate().latitude;
-        double longitude = issue.getCoordinate().longitude;
+        double latitude = issue.getCoordinate().getLatitude();
+        double longitude = issue.getCoordinate().getLongitude();
         GeoLocation location = new GeoLocation(latitude, longitude);
         this.mGeoFire.setLocation(id, location);
 
@@ -220,7 +223,7 @@ public class FirebaseDatabaseStorageService extends Service {
             public void onKeyEntered(String key, GeoLocation location) {
                 //  Toast.makeText(mContext.getApplicationContext(), "onKeyEntered" + location.toString(), Toast.LENGTH_LONG).show();
                 for (IssueLocationListener listener : mLocationListeners) {
-                    LatLng latlng = new LatLng(location.latitude, location.longitude);
+                    IssueCoordinate latlng = new IssueCoordinate(location.latitude, location.longitude);
                     attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
                         @Override
                         public void accept(CommunityIssue subject, IssueLocationListener callback) {
@@ -243,7 +246,7 @@ public class FirebaseDatabaseStorageService extends Service {
             public void onKeyMoved(String key, GeoLocation location) {
                 //Toast.makeText(mContext.getApplicationContext(), "onKeyMoved" + location.toString(), Toast.LENGTH_LONG).show();
                 for (IssueLocationListener listener : mLocationListeners) {
-                    LatLng latlng = new LatLng(location.latitude, location.longitude);
+                    IssueCoordinate latlng = new IssueCoordinate(location.latitude, location.longitude);
                     attachListenerToNewIssue(key, latlng, listener, new FirebaseBiConsumer<CommunityIssue, IssueLocationListener>() {
                         @Override
                         public void accept(CommunityIssue subject, IssueLocationListener callback) {
@@ -275,8 +278,8 @@ public class FirebaseDatabaseStorageService extends Service {
             httpsReference.getBytes(FIVE_MEGABYTES).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override
                 public void onSuccess(byte[] bytes) {
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                    image.setBitmap(bitmap);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); // Decode the bitmap
+                    image.setLocalFilePath(getImageFilePath(bitmap));
                     callback.onImageDownloaded(issue);
                 }
             });
@@ -284,7 +287,19 @@ public class FirebaseDatabaseStorageService extends Service {
         }
     }
 
-    private void attachListenerToNewIssue(String firebaseId, final LatLng location, final IssueLocationListener listener, final FirebaseBiConsumer<CommunityIssue, IssueLocationListener> callback) {
+    /**
+     * Does what the name says
+     * Found at: https://colinyeoh.wordpress.com/2012/05/18/android-getting-image-uri-from-bitmap/
+     */
+
+    public String getImageFilePath(Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), inImage, "Title", null);
+        return path;
+    }
+
+    private void attachListenerToNewIssue(String firebaseId, final IssueCoordinate location, final IssueLocationListener listener, final FirebaseBiConsumer<CommunityIssue, IssueLocationListener> callback) {
         DatabaseReference ref = mFirebaseIssueReference.child(firebaseId).getRef();
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {

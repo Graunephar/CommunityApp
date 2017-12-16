@@ -2,6 +2,7 @@ package com.dom.communityapp.ui;
 
 import android.app.Fragment;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -73,8 +74,8 @@ public class DetailsFragment extends Fragment{
 
         issue.attachTranslators(view.getContext());
 
-        Bitmap bitmap = issue.getIssueImage().getBitmap();
-        if(bitmap != null) detailsImage.setImageBitmap(bitmap);
+        String bitmappath = issue.getIssueImage().getLocalFilePath();
+        if(bitmappath != null) detailsImage.setImageURI(Uri.parse(bitmappath));
         destriptionLong.setText(issue.getLong_description());
         destriptionShort.setText(issue.getShort_description());
         category.setText(issue.getCategory().toString());

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -62,10 +63,8 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Serializa
     }
 
     private void setIcon() {
-        Bitmap bitmap = mIssue.getIssueImage().getBitmap();
-        if (bitmap != null) {
-            iconView.setImageBitmap(mIssue.getIssueImage().getBitmap());
-        }
+        String bitmappath = mIssue.getIssueImage().getLocalFilePath();
+        if(bitmappath != null) iconView.setImageURI(Uri.parse(bitmappath));
     }
 
     public CommunityIssue getIssue() {
